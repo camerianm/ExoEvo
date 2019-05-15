@@ -1,18 +1,18 @@
-# get.py
-#import sys
-#import os
-#import time
+# A module for calculating thermodynamic parameters.
+# Recommended import style (to be distinguished from "get" function for dictionaries):
+#   import getall as get
+
 import numpy as np
 
 #Constants
 Grav = 6.67408e-11  #Gravitational constant
 Me = 5.97e24        #Earth mass in kg
-Qe = 34.0e-12       #Early Earth heat production in W/kg mantle
 R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
 Ts=300.0
 seconds=3.1536e16    #billion years to seconds conversion
-#Tp=1923.0
+Qe = 3.611610290257257e-11
+
 
 keys={
 	'minerals':['forsterite','fayalite', 'orthoenstatite','clinoenstatite','periclase',
@@ -109,7 +109,6 @@ def thermals(mineral,Tp):
 		molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
 		cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
 
-
 	elif mineral == 'diamond':
 		MW=12.01
 		k0,k1,k2,k3=24.30000,-273.400,-377400.000,0.0
@@ -125,7 +124,7 @@ def thermals(mineral,Tp):
 		cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
 
 	else:
-		print('COULD NOT OBTAIN THERMAL BASELINE. Assuming olivine values.')
+		#print('COULD NOT OBTAIN THERMAL BASELINE. Assuming static values from DOI:10.1089/ast.2017.1695.')
 		alpha,cp,k=3.0e-5,1250.0,5.0
 
 	#molcp = k0 + k1*Tp**(-0.5) + k2*Tp**(-2) + k3*Tp**(-3) + k4*Tp**(-1) + k5*Tp + k6*Tp**2
@@ -155,20 +154,3 @@ def viscosity(Ev,visc0,Tp):
 def rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k):
 	Ra=(pm**2)*g*alpha*(Tp-Ts)*(d**3)*cp/(k*viscT)
 	return Ra
-
-# def rayleigh(Mpl,CMF,Rpl,CRF,Tp,mineral):
-# 	Mp,Mc,Rp,Rc=SIunits(Mpl,CMF,Rpl,CRF)
-# 	d,Vm,Sa,pm,g=build(Mp,Mc,Rp,Rc)
-# 	alpha,cp,k=thermals(mineral,Tp)
-# 	c1,Ev,visc0=TdepVisc(mineral)
-# 	viscT=viscosity(Ev,visc0,Tp)
-# 	#print(d,pm,g,alpha,Tp,Ts,cp, viscT,k,k/(pm*cp))
-# 	Ra=(pm**2)*g*alpha*(Tp-Ts)*(d**3)*cp/(k*viscT)
-# 	return Ra
-
-def Pe(n):
-	a=(format(n, '.4e'))
-	return a #format(n, '.4e')
-def Pf(n):
-	a=(format(n, '.4f'))
-	return a #float(format(n, '.4f'))
