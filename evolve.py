@@ -32,17 +32,18 @@ def dorn_heat(Mp,Mc,Qpl,t):
     return heat
 
 def plot_heat(source,title):
-	plt.rcParams['figure.dpi'] = 120
+	plt.rcParams['figure.dpi'] = 150
 	fig = figure(1)
 	ax = fig.add_subplot(211, autoscale_on=True)
 	production=source
-	ax.scatter(production[:,0],production[:,1],c='blue',alpha=0.2,s=1)
+	ax.scatter(production[:,0],production[:,1],c='blue',alpha=0.2,s=0.5)
 	minx=min(production[:,0])
 	maxx=max(production[:,0])
 	miny=min(production[:,1])
 	maxy=max(production[:,1])+((max(production[:,1])-miny)*0.1)
 	plt.xlim(minx,maxx)
 	plt.ylim(miny,maxy)
+	plt.grid(which='both',linestyle='--')
 	plt.title(str(title))
 	fname=str(str(title).split(' '))+'_temp_evolution.png'
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)

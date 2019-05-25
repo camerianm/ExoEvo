@@ -12,6 +12,7 @@ Grav = 6.67408e-11  #Gravitational constant
 Me = 5.97e24        #Earth mass in kg
 R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
+separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
 
 def weights_by_volume(file,startline): #returns: radius of each shell, relative contribution of each depth
 	f=open(file,'r')					# vs the one following it, relative contribution of each shell to volume 
@@ -97,8 +98,8 @@ def read_cols(file):
 def bulk_mass_fraction(file,startline):
 	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
 	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
-	columns=read_cols(file)[10:]
-	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[10:])))
+	columns=read_cols(file)[10:-1] #Excludes iron phase
+	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[10:-1])))
 	return bulkmassfraction
 
 def plot_rel_contributions(radii,wt_local):
