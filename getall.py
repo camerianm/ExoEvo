@@ -58,7 +58,7 @@ def TdepVisc(composition):
         mineral=i
         wt=composition[i]
         
-        c1=0.5
+        c1=1.0 #0.5
         Ev=300.0e3
         visc0=4.0e10
         
@@ -72,8 +72,8 @@ def TdepVisc(composition):
 def thermals(composition,Tp):
 
     def berman(Tp,k):
-        molcp = k[0] + k[1]*Tp**(-0.5) + k[2]*Tp**(-2) + k[3]*Tp**(-3) + k[4]*Tp**(-1) + k[5]*Tp + k[6]*Tp**2
-        return molcp
+        wtcp = k[0] + k[1]*Tp**(-0.5) + k[2]*Tp**(-2) + k[3]*Tp**(-3) + k[4]*Tp**(-1) + k[5]*Tp + k[6]*Tp**2
+        return wtcp
 
     def alpha_coeffs(Tp,k): 
         alpha = k[0] + k[1]*Tp**(1/3) + k[2]*Tp**(-1/3) + k[3]*Tp**(-1) + k[4]*Tp**(2) + k[5]*Tp**(-3) - k[6]*Tp**(1/2)
@@ -93,7 +93,7 @@ def thermals(composition,Tp):
         wt=composition[i]
 
         alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[mineral]['alpha']))
-        cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp'])) * 1000./mins[mineral]['MW']
+        cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
         k_tot = k_default
 
         #k0 through k6 are derived from extended form of eq.4 in Berman 1988, doi:10.1093/petrology/29.2.445
