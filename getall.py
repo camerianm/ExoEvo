@@ -68,7 +68,7 @@ def TdepVisc(composition):
 
     return c1_tot,Ev_tot,visc0_tot
 
-#Calculates thermal parameters
+#Calculates thermal parameters: Heat capacity Cp, thermal expansivity alpha, thermal conductivity k_tot
 def thermals(composition,Tp):
 
     def berman(Tp,k):
@@ -219,8 +219,8 @@ def CMF_estimate(Mpl,Rpl):     # Estimate core mass fraction from mass-radius re
 
 def CRF_estimate(Mpl,CMF,Rpl):     #Estimate core radius fraction from model results in https://tinyurl.com/y7wlvamw, from arxiv.org/abs/1905.06530
     CM_me=CMF*Mpl   # error margin under ~1% (of actual core radius) for most cases 
-    cr_scaling_exponent=0.266858062163334 - 0.0156950415578063*CM_me
-    cr_scaling_coefficient=0.65189302886118 + 0.116283877635892*CM_me
+    cr_scaling_exponent=-0.0156950415578063*(CMF-0.45547)+0.259709441585
+    cr_scaling_coefficient=0.116283877635892*(CMF-0.45547)+0.704856846608
     CR_re=cr_scaling_coefficient*(CM_me**cr_scaling_exponent)
     #Note that the below /mean/ scaling of core mass to core radius, across all CMF, has (on average) 5x % error with respect to modeled core radii.
     #CR_re = 0.694571363775 * (CM_me**0.268828669083)
@@ -253,14 +253,17 @@ def representative_mantle(Rp,Rc): #for calculating mantle's volume-averaged prop
     return frac_height
 
 def reasonable_mass(R,CMF):
+    # Estimates a mass for a planet whose radius and internal structure are only vaguely known
     M=(R/(1.07-0.21*CMF))**3.7
     return M
 
 def reasonable_radius(M,CMF):
+    # Estimates a radius for a planet whose mass and internal structure are only vaguely known
     R=(1.07-0.21*CMF)*(M)**(1/3.7)
     return R
 
 def sample_masses(R):
+    # Suggsts plausible masses for a given radius
     CMF_list=[0.10,0.20,0.30,0.40,0.50,0.60,0.70]
     print('\nFor a radius of ',R,'Re, here\'s a reasonable range of masses:')
     print('CMF\tMass(Me)')
@@ -269,6 +272,7 @@ def sample_masses(R):
     return
 
 def sample_radii(M):
+    # Suggsts plausible radii for a given mass
     CMF_list=[0.10,0.20,0.30,0.40,0.50,0.60,0.70]
     print('\nFor a mass of ', M,'Me, here\'s a reasonable range of radii:')
     print('CMF\tRadius(Re)')
@@ -277,43 +281,30 @@ def sample_radii(M):
     return
 
 def build(Mpl,Rpl,Tp0):
-    
-    print()
+    # derives planet properties: Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
     print('Now building your planet. One moment...')
-    print()
-    
-    if Mpl>6.0:
-        sample_radii(Mpl)
-    
+
     if Rpl>1.50001:
-        print('\nOops! You\'ve exceeded the range of radii where planets are likely to be rocky (<1.5Re).')
-        print('I\'ll run the largest plausibly "rocky" radius I can - 1.5Re.')
+        print('Oops! At',Rpl,'earth masses, your planet isn\'t likely to be rocky.')
+        print('I\'ll run the largest plausibly "rocky" radius we expect - 1.5Re.')
         Rpl=1.50
     
-    if Mpl>reasonable_mass(Rpl,0.9):
-        print('\nSeems you\'ve exceeded the range of masses plausible for this radius.')
+    if Mpl>reasonable_mass(Rpl,0.95):
+        print('Seems you\'ve exceeded the range of masses plausible for this radius.')
         print('I\'ll run the most massive plausibly "rocky" mass I can, at CMF=0.8, given the provided radius.')
-        Mpl=reasonable_mass(Rpl,0.7)
+        Mpl=reasonable_mass(Rpl,0.8)
         print('New mass:\t',str(Pf(Mpl)))
         sample_masses(Rpl)
     
+    if Mpl<reasonable_mass(Rpl,0.05):
+        print('This planet isn\'t dense enough to be rocky!')
+        print('I\'ll run the least massive plausibly "rocky" planet I can, at CMF=0.1, given the provided radius.')
+        Mpl=reasonable_mass(Rpl,0.1)
+        print('New mass:\t',str(Pf(Mpl)))
+        sample_masses(Rpl)
+
     CMF = CMF_estimate(Mpl,Rpl)  # Estimate core mass fraction from mass-radius relationships
     CRF = CRF_estimate(Mpl,CMF,Rpl) # Estimate core radius fraction from mass-radius relationships
-
-    if (CMF<0) or (CRF<0):
-        print('Either increase your mass, or decrease your radius, for a reasonable structure.')
-    if (CMF>1) or (CRF>1):
-        print('Either decrease your mass, or increase your radius, for a reasonable structure.')
-    if (abs(np.floor(CMF))>0) or (abs(np.floor(CRF))>0):
-        CMF=0.33
-        print('\nLet\'s first try changing the mass and keeping the current radius of',Rpl,' with an Earth-like CMF of 0.33.')
-        print('If results seem weird, try changing your planet\'s mass or radius! Keep in mind that "rocky" worlds have radii <1.5Re.')        
-        Mpl=reasonable_mass(Rpl,0.33)
-    
-    CMF = CMF_estimate(Mpl,Rpl)  # Estimate core mass fraction from mass-radius relationships - https://tinyurl.com/y7wlvamw, from arxiv.org/abs/1905.06530
-    CRF = CRF_estimate(Mpl,CMF,Rpl) # Estimate core radius fraction from mass-radius relationships
-    Mpl=reasonable_mass(Rpl,CMF)
-
     
     #Convert to SI units for further calculations
     Mp,Mc,Rp,Rc=SIunits(Mpl,CMF,Rpl,CRF)
@@ -334,15 +325,28 @@ def build(Mpl,Rpl,Tp0):
     Prep=Pcmb-frac_height*(Pcmb-Plithbase)
     #print('Representative mantle pressure: ', str(Pf(Prep)))
     
-    print('\nDone!')
+    print('Done!')
     
     #Report-out
     return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
 
 def SIunits(Mpl,CMF,Rpl,CRF):
+    #Converts from Earth-equivalents to SI units
     Mp=Mpl*Me	#planet mass in kg
     Mc=Mp*CMF   #core mass in kg
     Rp=Rpl*Re		#planet radius in m
     Rc=Rp*CRF			#core radius in m
     return Mp,Mc,Rp,Rc
 
+def sample_planets(Rpl,Tp0):
+     # Generates a grid of planets of varying mass which are plausible for a given radius and potential temperature.
+     CMF_range=np.linspace(0.05,0.95,20)
+     filename='Rpl_'+str(Pf(Rpl))+'_Tp_'+str(Pf(Tp0))+'_sample_planets.csv'
+     f=open(filename,'a+')
+     f.write('Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb\n')
+     for CMF in CMF_range:
+        Mpl=reasonable_mass(Rpl,CMF)
+        Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=build(Mpl,Rpl,Tp0)
+        f.write(str(Pe(Mp))+','+str(Pe(Mc))+','+str(Pe(Rp))+','+str(Pe(Rc))+','+str(Pf(d))+','+str(Pe(Vm))+','+str(Pe(Sa))+','+str(Pf(pm))+','+str(Pf(g))+','+str(Pf(Pcmb))+','+str(Pf(Tcmb))+'\n')
+     print('Sample planets available at: ', filename)
+     return 0
