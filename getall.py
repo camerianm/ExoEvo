@@ -58,9 +58,9 @@ def TdepVisc(composition):
         mineral=i
         wt=composition[i]
         
-        c1=1.0 #0.5
-        Ev=300.0e3
-        visc0=4.0e10
+        c1=c1_default
+        Ev=Ev_default
+        visc0=visc0_default
         
         c1_tot=c1_tot+(c1*wt)
         Ev_tot=Ev_tot+(Ev*wt)
@@ -69,18 +69,24 @@ def TdepVisc(composition):
     return c1_tot,Ev_tot,visc0_tot
 
 #Calculates thermal parameters: Heat capacity Cp, thermal expansivity alpha, thermal conductivity k_tot
+#Units for Cp: J kg-1 K-1   Units for alpha: K-1   Units for k: W m-1 K-1
 def thermals(composition,Tp):
 
     def berman(Tp,k):
+        #Returns: Heat capacity by weight, at constant pressure of 75 GPa - units of J kg-1 K-1
+        #The form of this expression (coefficients and exponents) is derived from extended form of eq.4 in Berman 1988, doi:10.1093/petrology/29.2.445
+        #Coefficient values, found in mineralDB.py, are obtained using scipy.optimize curvefit function on data from Stixrude & Lithgow-Bertelloni 2011
         wtcp = k[0] + k[1]*Tp**(-0.5) + k[2]*Tp**(-2) + k[3]*Tp**(-3) + k[4]*Tp**(-1) + k[5]*Tp + k[6]*Tp**2
         return wtcp
 
     def alpha_coeffs(Tp,k): 
+        #Returns: Coefficient of thermal expansivity at constant pressure of 75 GPa - units of K-1
+        #Coefficients in this expression, found in mineralDB.py, are obtained using scipy.optimize curvefit on values obtained from Stixrude &
+        #Lithgow-Bertelloni 2011. Process: V(P,T) * dV/dT
         alpha = k[0] + k[1]*Tp**(1/3) + k[2]*Tp**(-1/3) + k[3]*Tp**(-1) + k[4]*Tp**(2) + k[5]*Tp**(-3) - k[6]*Tp**(1/2)
         return alpha
 
 	#Not yet obtained for non-olivine minerals
-    #alpha=3.7e-5
     k=5.0
     k_default=5.0
 
@@ -96,111 +102,6 @@ def thermals(composition,Tp):
         cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
         k_tot = k_default
 
-        #k0 through k6 are derived from extended form of eq.4 in Berman 1988, doi:10.1093/petrology/29.2.445
-        #k0 through k6 have units J mol-1 K-1. commented values are from 1988; uncommented are from doi:10.4095/223425
-        #final 'cp' variable converts Cp from J mol-1 K-1 to J kg-1 K-1
-        #alpha has units K-1
-        '''
-        if mineral == 'forsterite':  # Foley & Smye 2018; doi:10.1089/ast.2017.1695
-            MW=140.69 #	FORSTERITE molar weight, in grams
-            #k0,k1,k2,k3=238.6400,-2001.300,0.0,-116240000.0
-            k0,k1,k2,k3=233.18030,-1801.580,0.000,-267937600. #fit to richet data
-            k4,k5,k6=0,0,0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            #molcp = k0 + k1*Tp**(-0.5) + k2*Tp**(-2) + k3*Tp**(-3) + k4*Tp**(-1) + k5*Tp + k6*Tp**2
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-
-            k=k_default
-
-        elif mineral == 'fayalite':
-            MW=203.78
-            #k0,k1,k2,k3=248.93,-1923.9,0.0,-139100000.
-            k0,k1,k2,k3=251.99620,-2013.697,0.000,-62189100.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'orthoenstatite':
-            MW=200.78
-            #k0,k1,k2,k3=166.58,-1200.6,-2270600.,279150000.
-            k0,k1,k2,k3=1332.63600,-9604.704,-18164480.000,2233202400.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'clinoenstatite':
-            MW=200.78
-            #k0,k1,k2,k3=139.96,-497.,-4400200.,535710000.
-            k0,k1,k2,k3=139.95824,-497.034,-4400237.000,535708928.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'periclase':
-            MW=40.3
-            #k0,k1,k2,k3=61.11,-296.2,-621200.,5840000.
-            k0,k1,k2,k3=61.10965,-296.199,-621154.000,5844612.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'corundum':
-            MW=101.96
-            #k0,k1,k2,k3=155.02,-828.4,-3861400.,409080000.
-            k0,k1,k2,k3=155.01888,-828.387,-3861363.000,409083648.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'spinel':
-            MW=142.27
-            k0,k1,k2,k3=235.9,-1766.6,-1710400.,40620000.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'diopside':
-            MW=216.55
-            k0,k1,k2,k3=305.41333,-1604.931,-7165973.000,921837568.
-            k4,k5,k6=0.0,0.0,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        elif mineral == 'diamond':
-            MW=12.01
-            k0,k1,k2,k3=24.30000,-273.400,-377400.000,0.0
-            k4,k5,k6=0.0,0.006272,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=2200.
-
-        elif mineral == 'ca-al pyroxene': # CA(1)AL(2)SI(1)O(6)
-            MW=218.12
-            k0,k1,k2,k3=310.69775,-1671.627,-7455263.000,948781568.
-            k4,k5,k6=0.0,0.006272,0.0
-            molcp=berman(Tp,k0,k1,k2,k3,k4,k5,k6)
-            cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-            k=k_default
-
-        else:
-            #print('COULD NOT OBTAIN THERMAL BASELINE. Assuming static values from DOI:10.1089/ast.2017.1695.')
-            alpha,cp,k=3.0e-5,1250.0,5.0
-        
-        cp_tot=cp_tot+(cp*wt)
-        '''
-        #k_tot=k_tot+(k*wt)
-
-	#molcp = k0 + k1*Tp**(-0.5) + k2*Tp**(-2) + k3*Tp**(-3) + k4*Tp**(-1) + k5*Tp + k6*Tp**2
-	#cp=(1000./MW)*molcp #converts Cp from J mol-1 K-1 to J kg-1 K-1
-
-    #print(alpha_tot,cp_tot,k_tot)
     return alpha_tot,cp_tot,k_tot
 
 
