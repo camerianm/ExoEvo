@@ -50,8 +50,8 @@ mins={'C2/c':'hpcEn', 'Wus':'Per', 'Pv':'MgPrv', 'an':'An', 'O':'Fo', 'Wad':'MgW
 #      Maj phases (both Maj and NaMaj have Al in them)
 
 #Change the below '200' to a larger number for a finer-resolution grid
-T=np.linspace(300,3000,200)
-P=np.linspace(1000,6300000,200)
+T=np.arange(10,3000,10) 
+P=np.arange(10000,6500000,10000) 
 
 #Generate a grid for each mineral.
 for item in mins:
@@ -61,7 +61,8 @@ for item in mins:
     f=open(fname,'a+')
     mineral=modelDBStix.get_phase(mins[item])
     molwt=mineral.props['molwt'][0]/1000 #grams to kg
-    f.write('NaN,'+(','.join(map(str, P)))+'\n')
+    P_Gpa=P/(10000)
+    f.write('NaN,'+(','.join(map(str, P_Gpa)))+'\n')
     for Ti in T:
         heatcap=(mineral.heat_capacity(Ti, P, const='P'))/molwt #J/K*kg
         heatcap=','.join(map(str, heatcap))
