@@ -70,7 +70,7 @@ def TdepVisc(composition):
 
 #Calculates thermal parameters: Heat capacity Cp, thermal expansivity alpha, thermal conductivity k_tot
 #Units for Cp: J kg-1 K-1   Units for alpha: K-1   Units for k: W m-1 K-1
-def thermals(composition,Tp):
+def thermals(composition,Tp,PGpa):
 
     def berman(Tp,k):
         #Returns: Heat capacity by weight, at constant pressure of 75 GPa - units of J kg-1 K-1
@@ -90,16 +90,16 @@ def thermals(composition,Tp):
     k=5.0
     k_default=5.0
 
-    cp_tot=0.0
     alpha_tot=0.0
     k_tot=0.0
 
+    cp_tot=Cps_from_grid(composition,Tp,PGpa)
+
     for i in composition:
-        mineral=i
         wt=composition[i]
 
-        alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[mineral]['alpha']))
-        cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
+        alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[i]['alpha']))
+        #cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
         k_tot = k_default
 
     return alpha_tot,cp_tot,k_tot
@@ -251,3 +251,101 @@ def sample_planets(Rpl,Tp0):
         f.write(str(Pe(Mp))+','+str(Pe(Mc))+','+str(Pe(Rp))+','+str(Pe(Rc))+','+str(Pf(d))+','+str(Pe(Vm))+','+str(Pe(Sa))+','+str(Pf(pm))+','+str(Pf(g))+','+str(Pf(Pcmb))+','+str(Pf(Tcmb))+'\n')
      print('Sample planets available at: ', filename)
      return 0
+
+def bisection(array,value):
+    '''Given an ``array`` , and given a ``value`` , returns an index j such that ``value`` is between array[j]
+    and array[j+1]. ``array`` must be monotonic increasing. j=-1 or j=len(array) is returned
+    to indicate that ``value`` is out of range below and above respectively.'''
+    n = len(array)
+    if (value < array[0]):
+        return -1
+    elif (value > array[n-1]):
+        return n
+    jl = 0# Initialize lower
+    ju = n-1# and upper limits.
+    while (ju-jl > 1):# If we are not yet done,
+        jm=(ju+jl) >> 1# compute a midpoint with a bitshift
+        if (value >= array[jm]):
+            jl=jm# and replace either the lower limit
+        else:
+            ju=jm# or the upper limit, as appropriate.
+        # Repeat until the test condition is satisfied.
+    if (value == array[0]):# edge cases at bottom
+        return 0
+    elif (value == array[n-1]):# and top
+        return n-1
+    else:
+        return jl
+
+def Cp_at_P(composition,P):
+    Cp_at_PGpa={}
+    lP_index=int(np.floor(P))
+    for i in composition:
+        istring=str(i)
+        istring=''.join(char for char in istring if char.isalnum())
+        file='CPgrid/'+istring+'_cpgrid.csv'
+        a=np.genfromtxt(file,delimiter=',',usecols=(lP_index,lP_index+1))
+        #lPindex=bisection(a[0,:],P)
+        loP=a[0,0]
+        hiP=a[0,1]
+        total_diff=hiP-loP
+        hi_wt=(P-loP)/total_diff
+        lo_wt=(hiP-P)/total_diff
+        Cps=((a[1:,0]*lo_wt) + (a[1:,1]*hi_wt))
+        Cp_at_PGpa[i]=Cps
+        T_arr=np.genfromtxt(file,delimiter=',',usecols=0,skip_header=1)
+    return Cp_at_PGpa, T_arr
+
+
+def Cps_from_grid(composition,Tp,P): #Note that P is input in GPa
+    # Also note: This is designed to work with a regularly-spaced grid of spacings 1.0eN
+    # where (currently) for T, N=10 ; for P, N=0
+    cp_tot=0.0
+    lP_index=int(np.floor(P))
+    lT_index=int(np.floor(Tp/10))
+
+    a=np.zeros((2,2))
+
+    for i in composition:
+        istring=str(i)
+        istring=''.join(char for char in istring if char.isalnum())
+        file='CPgrid/'+istring+'_cpgrid.csv'
+        a=np.genfromtxt(file,delimiter=',',usecols=(lP_index,lP_index+1),skip_header=lT_index)[:2]
+
+        #Find the lower of two indices between which T and P are each located.
+        #lTindex=bisection(a[:,0],Tp)
+        #lPindex=bisection(a[0,:],P)
+
+        #Identify the lower and upper values for each T and P, between which our grid point is found
+        loT=(lT_index)*10
+        hiT=(lT_index+1)*10
+        loP=lP_index
+        hiP=lP_index+1
+        #loT=a[lTindex,0]
+        #hiT=a[lTindex+1,0]
+        #loP=a[0,lPindex]
+        #hiP=a[0,lPindex+1]
+
+        #Calculate euclidean distance for weighting
+        d00=((Tp-loT)**2 + (P-loP)**2)**0.5
+        d01=((Tp-loT)**2 + (P-hiP)**2)**0.5
+        d10=((Tp-hiT)**2 + (P-loP)**2)**0.5
+        d11=((Tp-hiT)**2 + (P-hiP)**2)**0.5
+
+        #Use those distances to give a weight for each 
+        tot=(d00*d01*d10) + (d00*d10*d11) + (d01*d10*d11) + (d00*d01*d11)
+        wt00=(d01*d10*d11)/tot
+        wt01=(d00*d10*d11)/tot
+        wt10=(d00*d01*d11)/tot
+        wt11=(d00*d01*d10)/tot 
+
+        #Use those weights on each grid value to calculate a weighted average
+        wtavg_i = ( wt00*a[0,0] + wt01*a[0,1] + wt10*a[1,0] + wt11*a[1,1] )
+
+        #Weight this single mineral by its fraction of the whole
+        i_contribute=composition[i] * wtavg_i
+
+        #Add to running total of (now-weighted) Cp.
+        cp_tot=cp_tot+i_contribute
+
+    return cp_tot
