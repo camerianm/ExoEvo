@@ -6,6 +6,7 @@ import numpy as np
 from mineralDB import minerals as mins
 from printall import Pe as Pe #print scientific notation, 4 decimal
 from printall import Pf as Pf #print float, 4 decimal
+import time
 
 #Constants
 Grav = 6.67408e-11  #Gravitational constant
@@ -70,7 +71,7 @@ def TdepVisc(composition):
 
 #Calculates thermal parameters: Heat capacity Cp, thermal expansivity alpha, thermal conductivity k_tot
 #Units for Cp: J kg-1 K-1   Units for alpha: K-1   Units for k: W m-1 K-1
-def thermals(composition,Tp,PGpa):
+def thermals_75GPa(composition,Tp,PGpa):
 
     def berman(Tp,k):
         #Returns: Heat capacity by weight, at constant pressure of 75 GPa - units of J kg-1 K-1
@@ -89,17 +90,15 @@ def thermals(composition,Tp,PGpa):
 	#Not yet obtained for non-olivine minerals
     k=5.0
     k_default=5.0
-
+    cp_tot=0.0
     alpha_tot=0.0
     k_tot=0.0
-
-    cp_tot=Cps_from_grid(composition,Tp,PGpa)
 
     for i in composition:
         wt=composition[i]
 
         alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[i]['alpha']))
-        #cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
+        cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
         k_tot = k_default
 
     return alpha_tot,cp_tot,k_tot
@@ -277,75 +276,128 @@ def bisection(array,value):
     else:
         return jl
 
-def Cp_at_P(composition,P):
-    Cp_at_PGpa={}
+
+def thermals_at_P_ave(composition,P):
+    # Returns an array, whose columns are: T_P, alpha_P, Cp_P, and k_P
+    # i.e., a temperature range, with corresponding compositionally-averaged
+    # alpha, Cp, and k for a (predetermined) "average" mantle pressure.
+    # Note that this smears out the thermal consequences of pressure-dependent
+    # compositional heterogeneity (i.e. it treats mantle as isobaric).
+
+    #The below can be changed if indexing scheme changes from 1 Gpa resolution
+
+    gridstandard='alphagrid/O_alphagrid.csv'
+
     lP_index=int(np.floor(P))
+    uP_index=lP_index+2 #Only two values print due to string read-in mode, one Gpa apart.
+    T_P=np.genfromtxt(gridstandard,delimiter=',',usecols=0,skip_header=1)
+    nTs=len(T_P[:])
+    thermals=np.zeros((nTs,4))
+    thermals[:,0]=T_P
+    thermals[:,3]=5.0
+
+    fgridstandard=open(gridstandard,'r')
+    Ps=fgridstandard.readline().split(',')[lP_index:uP_index]
+    loP,hiP=np.float(Ps[0]),np.float(Ps[1])
+    hi_wt=(P-loP)/(hiP-loP)
+    lo_wt=(hiP-P)/(hiP-loP)
+    #Cp_at_PGpa=np.array(len(T_P))
+    #alpha_at_PGpa=np.array(len(T_P))
+    #k_at_PGpa={}
     for i in composition:
         istring=str(i)
         istring=''.join(char for char in istring if char.isalnum())
-        file='CPgrid/'+istring+'_cpgrid.csv'
-        a=np.genfromtxt(file,delimiter=',',usecols=(lP_index,lP_index+1))
-        #lPindex=bisection(a[0,:],P)
-        loP=a[0,0]
-        hiP=a[0,1]
-        total_diff=hiP-loP
-        hi_wt=(P-loP)/total_diff
-        lo_wt=(hiP-P)/total_diff
-        Cps=((a[1:,0]*lo_wt) + (a[1:,1]*hi_wt))
-        Cp_at_PGpa[i]=Cps
-        T_arr=np.genfromtxt(file,delimiter=',',usecols=0,skip_header=1)
-    return Cp_at_PGpa, T_arr
+        cpfile='CPgrid/'+istring+'_cpgrid.csv'
+        alphafile='alphagrid/'+istring+'_alphagrid.csv'
+        cp_arr=np.genfromtxt(cpfile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
+        alpha_arr=np.genfromtxt(alphafile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
+        #Cps=(cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)
+        thermals[:,1]= thermals[:,1] + (composition[i] * (alpha_arr[:,0]*lo_wt + alpha_arr[:,1]*hi_wt))
+        thermals[:,2] = thermals[:,2]+ (composition[i] * ((cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)))
+    return thermals
 
+def Tdep_thermals(thermals,Tp):
 
-def Cps_from_grid(composition,Tp,P): #Note that P is input in GPa
-    # Also note: This is designed to work with a regularly-spaced grid of spacings 1.0eN
-    # where (currently) for T, N=10 ; for P, N=0
+    gap=thermals[1,0]-thermals[0,0]
+    lT_index=int(np.floor(Tp/gap))-1
+    loT=thermals[lT_index,0]
+    hiT=thermals[lT_index+1,0]
+    hi_wt=(Tp-loT)/(hiT-loT)
+    lo_wt=(hiT-Tp)/(hiT-loT)
+    thermals[lT_index,0]
+    alpha=thermals[lT_index,1]*lo_wt + thermals[lT_index+1,1]*hi_wt
+    Cp=thermals[lT_index,2]*lo_wt + thermals[lT_index+1,2]*hi_wt
+    k=thermals[lT_index,3]*lo_wt + thermals[lT_index+1,3]*hi_wt
+    return alpha,Cp,k
+'''
+composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
+               'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \
+               'Cpx':1.099284717, 'Aki':0.0000703828958617, 'Gt_maj':9.763623743, 'Ppv':6.440039009, \
+               'CF':0.00, 'st':0.00, 'q':0.00, 'ca-pv':3.617239801, \
+               'cfs':0.00, 'coe':0.00, 'ky':0.00, 'seif':0.00}
+composition=adds_up(composition)
+thermals=thermals_at_P_ave(composition,70.4)
+alpha,Cp,k=Tdep_thermals(thermals,1673.1)
+print(alpha,Cp,k)
+'''
+
+def thermals(composition,Tp,P): 
+    # IMPORTANT NOTE: Assumes Cp and alpha grid have identical row+column numbers and associated T & P
+    # Note that P is input in GPa
+    # This is designed to work with a regularly-spaced grid of spacings 1.0eN
+    # where (currently) for T, N=10 ; for P, N=0.
+
     cp_tot=0.0
+    alpha_tot=0.0
+    k_tot=5.0
+
     lP_index=int(np.floor(P))
-    lT_index=int(np.floor(Tp/10))
+    lT_index=int(np.floor(Tp/10.))
+    #lT_index=int(np.floor(lT_index))
+
+    #Identify the lower and upper values for each T and P, between which our grid point is found
+    loT=(lT_index)*10
+    hiT=(lT_index+1)*10
+    loP=lP_index
+    hiP=lP_index+1
+    #print(type(loT), type(hiT), type(loP), type(hiP))
+
+    #Calculate euclidean distance for weighting
+    d00=((Tp-loT)**2 + (P-loP)**2)**0.5
+    d01=((Tp-loT)**2 + (P-hiP)**2)**0.5
+    d10=((Tp-hiT)**2 + (P-loP)**2)**0.5
+    d11=((Tp-hiT)**2 + (P-hiP)**2)**0.5
+
+    #Use those distances to give a weight for each 
+    tot=(d00*d01*d10) + (d00*d10*d11) + (d01*d10*d11) + (d00*d01*d11)
+    wt00=(d01*d10*d11)/tot
+    wt01=(d00*d10*d11)/tot
+    wt10=(d00*d01*d11) /tot
+    wt11=(d00*d01*d10)/tot
 
     a=np.zeros((2,2))
+
+    icount=0
 
     for i in composition:
         istring=str(i)
         istring=''.join(char for char in istring if char.isalnum())
         file='CPgrid/'+istring+'_cpgrid.csv'
         a=np.genfromtxt(file,delimiter=',',usecols=(lP_index,lP_index+1),skip_header=lT_index)[:2]
-
-        #Find the lower of two indices between which T and P are each located.
-        #lTindex=bisection(a[:,0],Tp)
-        #lPindex=bisection(a[0,:],P)
-
-        #Identify the lower and upper values for each T and P, between which our grid point is found
-        loT=(lT_index)*10
-        hiT=(lT_index+1)*10
-        loP=lP_index
-        hiP=lP_index+1
-        #loT=a[lTindex,0]
-        #hiT=a[lTindex+1,0]
-        #loP=a[0,lPindex]
-        #hiP=a[0,lPindex+1]
-
-        #Calculate euclidean distance for weighting
-        d00=((Tp-loT)**2 + (P-loP)**2)**0.5
-        d01=((Tp-loT)**2 + (P-hiP)**2)**0.5
-        d10=((Tp-hiT)**2 + (P-loP)**2)**0.5
-        d11=((Tp-hiT)**2 + (P-hiP)**2)**0.5
-
-        #Use those distances to give a weight for each 
-        tot=(d00*d01*d10) + (d00*d10*d11) + (d01*d10*d11) + (d00*d01*d11)
-        wt00=(d01*d10*d11)/tot
-        wt01=(d00*d10*d11)/tot
-        wt10=(d00*d01*d11)/tot
-        wt11=(d00*d01*d10)/tot 
+        file2='alphagrid/'+istring+'_alphagrid.csv'
+        a2=np.genfromtxt(file2,delimiter=',',usecols=(lP_index,lP_index+1),skip_header=lT_index)[:2]
 
         #Use those weights on each grid value to calculate a weighted average
-        wtavg_i = ( wt00*a[0,0] + wt01*a[0,1] + wt10*a[1,0] + wt11*a[1,1] )
+        wtavg_iCp = ( wt00*a[0,0] + wt01*a[0,1] + wt10*a[1,0] + wt11*a[1,1] )
+        wtavg_ialpha = ( wt00*a2[0,0] + wt01*a2[0,1] + wt10*a2[1,0] + wt11*a2[1,1] )
 
         #Weight this single mineral by its fraction of the whole
-        i_contribute=composition[i] * wtavg_i
-
+        i_contribute_Cp=composition[i] * wtavg_iCp
+        i_contribute_alpha=composition[i] * wtavg_ialpha
         #Add to running total of (now-weighted) Cp.
-        cp_tot=cp_tot+i_contribute
+        cp_tot=cp_tot+i_contribute_Cp
+        alpha_tot=alpha_tot+i_contribute_alpha
 
-    return cp_tot
+    return alpha_tot,cp_tot,k_tot
+
+

@@ -130,5 +130,26 @@ def plot_rel_contributions(radii,wt_local):
 #Cp likely (?) needs mass-based averaging scheme. Alpha likely (?) needs volume-based averaging scheme.
 #Columns 10 onward are minerals. They are in variable order, and there are a variable number of them.
 
+def FileToPlanet(file):
+	startline=1000
+	# add ability to use column headers - particularly vital for mineralogy
+	a=np.genfromtxt(file,delimiter=',',colnames=TRUE, usecols=(),skip_header=coresteps)
+	headers=f.open(file,'r').readlines[0].split(',')
+	f.close()
 
+	print(type(headers))
+	print(a['Pressure'])
+	exit()
 
+	Planet={}
+	Planet['Rp']=1000*np.max(a['Radius'])
+	Planet['Rc']=1000*np.min(a['Radius'])
+	Planet['Pcmb']=np.max(a['Pressure'])
+	Planet['composition']=bulkmassfraction(file,startline)
+
+	comp={}
+
+	for row in range(len(a[:,0])):
+		for m in range(len(headers[6:])):
+			comp[headers[m]]=a[row,6+m]
+			P=a[row,2]

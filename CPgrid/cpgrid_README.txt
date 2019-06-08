@@ -49,7 +49,6 @@ mins={'C2/c':'hpcEn', 'Wus':'Per', 'Pv':'MgPrv', 'an':'An', 'O':'Fo', 'Wad':'MgW
 #      Cpx phases (5 - cEn, Di, CaTs)
 #      Maj phases (both Maj and NaMaj have Al in them)
 
-#Change the below '200' to a larger number for a finer-resolution grid
 T=np.arange(10,3000,10) 
 P=np.arange(10000,6500000,10000) 
 

@@ -31,42 +31,43 @@ composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.0
                'cfs':0.00, 'coe':0.00, 'ky':0.00, 'seif':0.00}
 
 '''
+# Make sure your planet is self-consistent
+composition=get.adds_up(composition)
+
 method='dynamic'    #static, dynamic, or benchmark thermal parameters
 Mpl=1.0            #Planet mass in Me - usually between 0.5 and 5     Earth = 1.0
 Rpl=1.0             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
-Tp0=2000          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
+Tp0=1800          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
 tmax=4.55           #ending time, in Ga                                Earth=4.55
 Qp=1.0
 
-# Make sure your planet is self-consistent
-composition=get.adds_up(composition)
 
 # Build your mantle and acquire its unchanging material properties.
 Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
 c1,Ev,visc0=get.TdepVisc(composition)
+thermals=get.thermals_at_P_ave(composition,0.5*Pcmb)
 
 params={"Mp":Mp,"Mc":Mc,"CMF":Mc/Mp,\
         "Rp":Rp,"Rc":Rc,"CRF":Rc/Rp,\
         "d":d,"Vm":Vm,"Sa":Sa,\
         "pm":pm,"g":g,"Pcmb":Pcmb,\
         "c1":c1,"Ev":Ev,"visc0":visc0}
-
 prnt.unchanging(params)
 
 #Evolve your planet over time
 Tp=Tp0
 Ts=300.0
-dt=0.01
+dt=0.10
 Hts=[]             #A list of lists; column names are in get.keys['columns']
 t=0.0              #Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
 
 print("FINAL VALUES:")
-print('time\t temp(C) \tRayleigh \tRadioHeat(W)\tHeatLoss(W) \tUreyRatio')
+print('time\t temp(K) \tRayleigh \tRadioHeat(W)\tHeatLoss(W) \tUreyRatio')
 
 while t <= tmax:
 
-    if method=='dynamic': alpha,cp,k=get.thermals(composition,Tp)
-    if method=='static': alpha,cp,k=get.thermals(composition,1625)
+    if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
+    if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
     if method=='benchmark': alpha,cp,k,pm=3.7e-5,1250.,5.0,3340. #common benchmark values
     
     viscT=get.viscosity(Ev,visc0,Tp)
@@ -75,112 +76,14 @@ while t <= tmax:
     production=evolve.produce_heat(Mp,Mc,Qp,t)
     loss=evolve.flux_heat(Sa,c1,k,Tp,d,Ra,Ev)
     dTp=(dt*get.seconds*(production-loss))/(cp*pm*Vm) #Potentially change to (cp*Mp)?
-    Hts.append([t,Tp-273.15,Ra,production,loss,production/loss])
+    Hts.append([t,Tp,Ra,production,loss,production/loss])
     
     Tp=Tp+dTp
     t=t+dt
 
 Evolution=np.asarray(Hts)
 
-print(Pf(t), '\t', Pf(Tp-273.15), '\t', Pe(Ra), '\t',  Pe(production), '\t', Pe(loss),  '\t', Pf(production/loss))
+print(Pf(t), '\t', Pf(Tp), '\t', Pe(Ra), '\t',  Pe(production), '\t', Pe(loss),  '\t', Pf(production/loss))
 print()
 
-Temps=evolve.plot_heat(Evolution[:,(0,1)],"Temperature (C) vs Time (Ga)")
-print('alpha=',alpha,'\tCp=',cp)
-
-'''
-
-#Compare approaches to calculating Cp and alpha
-methods=('dynamic','static','benchmark')    #static or dynamic thermal parameters
-Tp=Tp0
-Ts=300.0
-dt=0.01
-Hts=[]             #A list of lists; column names are in get.keys['columns']
-t=0.0              #Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
-
-print("FINAL VALUES:")
-print('method\t\t temp(C) \tRayleigh \tHeatLoss(W) \tUreyRatio')
-
-for method in methods:
-    
-    Tp=Tp0
-    Ts=300.0
-    dt=0.01
-    t=0.0  
-    
-    while t <= tmax:
-        alpha,cp,k=get.thermals(composition,Tp)
-
-        if method=='dynamic': alpha,cp,k=get.thermals(composition,Tp)
-        if method=='static': alpha,cp,k=get.thermals(composition,1625)
-        if method=='benchmark': alpha,cp,k=3.7e-5,1250.,5.0 #common benchmark values
-
-        viscT=get.viscosity(Ev,visc0,Tp)
-        Ra=get.rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k)
-
-        production=evolve.produce_heat(Mp,Mc,Qp,t)
-        loss=evolve.flux_heat(Sa,c1,k,Tp,d,Ra,Ev)
-        dTp=(dt*get.seconds*(production-loss))/(cp*pm*Vm) #Potentially change to (cp*Mp)?
-        Hts.append([t,Tp-273.15,Ra,production,loss,production/loss])
-
-        Tp=Tp+dTp
-        t=t+dt
-        
-    print(method, '  \t', Pf(Tp-273.15), '\t', Pe(Ra), '\t',  Pe(loss),  '\t', Pf(production/loss))
-
-Evolution=np.asarray(Hts)
-
-Temps=evolve.plot_heat(Evolution[:,(0,1)],"Temperature (C) vs Time (Ga)")
-print('alpha=',alpha,'\tCp=',cp)
-
-
-
-# Compare differing bulk compositions.
-Tp=Tp0
-Ts=300.0
-dt=0.01
-Hts=[]             #A list of lists; column names are in get.keys['columns']
-t=0.0              #Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
-
-print("FINAL VALUES:")
-print('mineral\t temp(C) \tRayleigh \tHeatLoss(W) \tUreyRatio')
-
-for m in minerals:
-    onemin = {m:1.0}
-    composition = onemin
-
-    Tp=Tp0
-    Ts=300.0
-    dt=0.01
-    t=0.0  
-    
-    start=time.time()
-    while t <= tmax:
-        alpha,cp,k=get.thermals(composition,Tp)
-
-        if method=='dynamic': alpha,cp,k=get.thermals(composition,Tp)
-        if method=='static': alpha,cp,k=get.thermals(composition,1625)
-
-        viscT=get.viscosity(Ev,visc0,Tp)
-        Ra=get.rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k)
-
-        production=evolve.produce_heat(Mp,Mc,Qp,t)
-        loss=evolve.flux_heat(Sa,c1,k,Tp,d,Ra,Ev)
-        dTp=(dt*get.seconds*(production-loss))/(cp*pm*Vm) #Potentially change to (cp*Mp)?
-        Hts.append([t,Tp-273.15,Ra,production,loss,production/loss])
-
-        Tp=Tp+dTp
-        t=t+dt
-    print('alpha=',alpha,'\tCp=',cp)
-
-    print(m, '\t', Pf(Tp-273.15), '\t', Pe(Ra), '\t',  Pe(loss),  '\t', Pf(production/loss))
-
-Evolution=np.asarray(Hts)
-
-Temps=evolve.plot_heat(Evolution[:,(0,1)],"Temperature (C) vs Time (Ga)")
-#Rayleighs=evolve.plot_heat(Evolution[:,(0,2)],"Rayleigh number vs Time (Ga)")
-#Heat_loss=evolve.plot_heat(Evolution[:,(0,4)],"Heat loss (W) vs Time (Ga)")
-#Heat_production=evolve.plot_heat(Evolution[:,(0,3)],"Heat production (W) vs Time (Ga)")
-#plt.savefig('radiogenic.pdf')#Rayleighs=evolve.plot_heat(Evolution[:,(0,2)],"Rayleigh number vs Time (Ga)")
-
-'''
+Temps=evolve.plot_heat(Evolution[:,(0,1)],"Temperature (K) vs Time (Ga)")
