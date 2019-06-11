@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure, show
-
+import getall as get
 #import scipy as sp
 #import sys
 #import os
@@ -130,9 +130,24 @@ def plot_rel_contributions(radii,wt_local):
 #Cp likely (?) needs mass-based averaging scheme. Alpha likely (?) needs volume-based averaging scheme.
 #Columns 10 onward are minerals. They are in variable order, and there are a variable number of them.
 
-def FileToPlanet(file):
-	startline=1000
-	# add ability to use column headers - particularly vital for mineralogy
+def build(Mpl,file,Tp0):
+    startline=1000
+    with open(file) as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                minerals=line.split(separator)[10:-1]
+            if i == 1:
+                Rpl=np.float(line.split(separator)[0])*1000/Re
+                Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
+            if i == startline+1:
+                Rc=np.float(line.split(separator)[1])*1000
+                d=Rp-Rc
+                Vm=(4./3.)*np.pi*(Rp**3 - Rc**3)
+                pm=(Mp-Mc)/Vm
+                Pcmb=np.float(line.split(separator)[3])
+    return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
+'''       
+    # add ability to use column headers - particularly vital for mineralogy
 	a=np.genfromtxt(file,delimiter=',',colnames=TRUE, usecols=(),skip_header=coresteps)
 	headers=f.open(file,'r').readlines[0].split(',')
 	f.close()
@@ -153,3 +168,4 @@ def FileToPlanet(file):
 		for m in range(len(headers[6:])):
 			comp[headers[m]]=a[row,6+m]
 			P=a[row,2]
+'''
