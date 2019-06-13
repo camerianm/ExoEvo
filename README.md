@@ -1,7 +1,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/camerianm/ExoEvo/master)
 
 
-## Current status (2019/05/30):
+## Current status (2019/06/13):
 * Extremely early version (development began 2019/04/19)
 * Not yet recommended for use in research or educational settings
 
