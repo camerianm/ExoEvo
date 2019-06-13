@@ -47,7 +47,7 @@ def TdepVisc(composition):
     # Will then add to mineral dictionary file.
     
     # Olivine values
-    c1_default=0.5
+    c1_default=1.0 #0.5
     Ev_default=300.0e3
     visc0_default=4.0e10
     
