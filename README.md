@@ -1,7 +1,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/camerianm/ExoEvo/master)
 
 
-## Current status (2019/06/13):
+## Current status (2019/06/27):
 * Extremely early version (development began 2019/04/19)
 * Not yet recommended for use in research or educational settings
 
@@ -19,7 +19,7 @@
 * P/T grid for mineral's thermal parameters can be generated in ENKIportal via scripts provided in alphagrid_README.txt and CPgrid_README.txt. Users who want to add end-members, but who do not have ENKIportal access, should absolutely contact repository owner to request that a thermal grid be made.
 
 ### Not yet added:
-   * Composition-specific thermal conductivity **[~]**
+   * Composition-specific thermal conductivity (in progress) **[~]**
    * Composition-specific temperature-dependent viscosity parameters (e.g. prefactors and activation energy for diffusion creep) **[~]**
    * Depth variations in T, P, and composition, to calculate evolution not of a 0-D mixture (bulk planet average at a single temperature and representative pressure, for each timestep), but a 1-D structure and accompanying adiabat
 

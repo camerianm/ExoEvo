@@ -25,6 +25,7 @@ composition = exo_composition
 
 
 # Build-your-own-planet mode:
+'''
 composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
                'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \
                'Cpx':1.099284717, 'Aki':0.0000703828958617, 'Gt_maj':9.763623743, 'Ppv':6.440039009, \
@@ -33,12 +34,27 @@ composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.0
 
 # Make sure your planet is self-consistent
 composition=get.adds_up(composition)
-'''
-files=read_cumulative.planets_from_summary()
+
+#files=read_cumulative.planets_from_summary()
+
+radii=[0.9,1.0,1.1,1.2,1.3,1.4,1.5]
+cmfs=[0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50]
+files={}
+
+for r in radii:
+    for cmf in cmfs:
+        m=get.reasonable_mass(r,cmf)
+        file='R'+str(Pf(r))[0:4]+'_M'+str(Pf(m)[0:4])
+        files[file]={}
+        files[file]['Mass_Me']=m
+        files[file]['Radius_Re']=r
+        files[file]['CMF']=cmf
+print(files[file].keys())
+
 Hts=[]
 
 print("FINAL VALUES:")
-print('file\t\t\t alpha \t\tCp \ttemp(K) \tRayleigh \tHeatLoss(W) \tUreyRatio')
+print('file\t\t alpha \t\tCp \ttemp(K) \tRayleigh \tHeatLoss(W) \tUreyRatio')
 
 for file in files:
 
@@ -47,24 +63,13 @@ for file in files:
     Rpl=files[file]['Radius_Re']             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
     Tp0=1800          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
     tmax=4.55           #ending time, in Ga                                Earth=4.55
-    Qp=0.8
-
+    Qp=1.0
 
     # Build your mantle and acquire its unchanging material properties.
-    #Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
-    Mp=files[file]['Mass_kg']
-    Mc=Mp*files[file]['CMF']
-    Rp=files[file]['Radius_m']
-    Rc=Rp*files[file]['CRF']
-    d=files[file]['Mantle_depth']
-    Vm=files[file]['Mantle_vol']
-    Sa=4*np.pi*Rp**2
-    pm=files[file]['Mantle_rho']
-    g=get.Grav*Mp/(Rp**2)
-    Pcmb=files[file]['CMBP']
-    Tcmb=get.CMB_T(Rp,Tp0)
+    Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
 
-    composition=files[file]['composition']
+
+    #composition=files[file]['composition']
 
     '''
     params={"Mp":Mp,"Mc":Mc,"CMF":Mc/Mp,\
@@ -92,6 +97,7 @@ for file in files:
 
         if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
         if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1625)
+        if method=='benchmark': alpha,cp,k=3.7e-5,1250.,5.0 #common benchmark values
 
         viscT=get.viscosity(Ev,visc0,Tp)
         Ra=get.rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k)

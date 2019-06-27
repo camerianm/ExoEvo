@@ -34,11 +34,12 @@ def adds_up(composition):
     for i in composition:
         subtotal=subtotal+composition[i]
     if abs(subtotal-1.0)>error_tolerance:
-        print('Fractional abundances don\'t add up; normalizing for total.\nNew fractional abundances:')
+        #print('Fractional abundances don\'t add up; normalizing for total.\nNew fractional abundances:')
         for i in composition:
             new=composition[i]/subtotal
             composition[i]=new
-            print(i,'\t\t',str(Pf(composition[i])))
+            #print(i,'\t\t',str(Pf(composition[i])))
+        #print(composition)
     return(composition)
 
 def TdepVisc(composition):
@@ -98,8 +99,8 @@ def thermals_75GPa(composition,Tp,PGpa):
         wt=composition[i]
 
         alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[i]['alpha']))
-        cp_tot = cp_tot + wt * (berman(Tp,mins[mineral]['Cp']))# * 1000./mins[mineral]['MW']
-        k_tot = k_default
+        cp_tot = cp_tot + wt * (berman(Tp,mins[i]['Cp']))# * 1000./mins[mineral]['MW']
+        k_tot = k_tot + wt * mins[mineral]['k']
 
     return alpha_tot,cp_tot,k_tot
 
@@ -349,7 +350,7 @@ def thermals(composition,Tp,P):
 
     cp_tot=0.0
     alpha_tot=0.0
-    k_tot=5.0
+    k_tot=0.0
 
     lP_index=int(np.floor(P))
     lT_index=int(np.floor(Tp/10.))
@@ -397,6 +398,7 @@ def thermals(composition,Tp,P):
         #Add to running total of (now-weighted) Cp.
         cp_tot=cp_tot+i_contribute_Cp
         alpha_tot=alpha_tot+i_contribute_alpha
+        k_tot=k_tot+composition[i]*mins[i]['k']
 
     return alpha_tot,cp_tot,k_tot
 
