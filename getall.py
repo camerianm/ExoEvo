@@ -183,7 +183,7 @@ def sample_radii(M):
 
 def build(Mpl,Rpl,Tp0):
     # derives planet properties: Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
-    print('Now building your planet. One moment...')
+    #print('Now building your planet. One moment...')
 
     if Rpl>1.50001:
         print('Oops! At',Rpl,'earth masses, your planet isn\'t likely to be rocky.')
@@ -226,7 +226,7 @@ def build(Mpl,Rpl,Tp0):
     Prep=Pcmb-frac_height*(Pcmb-Plithbase)
     #print('Representative mantle pressure: ', str(Pf(Prep)))
     
-    print('Done!')
+    #print('Done!')
     
     #Report-out
     return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
