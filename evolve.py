@@ -7,7 +7,15 @@ import shutil
 import getall as get
 
 Me = 5.97e24        #Earth mass in kg
-Qe = 3.611610290257257e-11 #Calculated so Qe= ~5.016 * 28.8e12/(Mp-Mc) - i.e. 5x present day, as primordial Earth.
+Qe = 2.00e-11 		# If bulk silicate earth Urey ratio (BSE) is assumed, crust is included. 16TW currently; ~80TW past; core mass excluded; Qe=2.00e-11
+				 	# If not, Qe=1.055e-11. Estimated from convective Urey Ratio for present day, multiplied by 5 to simulate starting Earth values
+					# i.e., Qe = ~5.00 * (0.23 * 36.5e12 W)/(M(earth)-M(core)-M(crust)). 
+					# circa 4.55Ga. This would imply a closed reservoir of radionuclides in the mantle, with the total mass
+					# of continental crust remaining constant.
+					# If crustal growth module is added, should use this present day starting point, then add partitioning
+					# coefficient for HPE in melt vs. solid.
+					# Current HPE estimates from: doi:10.1029/2007RG000241
+					#    Mcrust=0.006Mmantle ; Mcore=0.33*Mearth.
 R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
 Ts=300.0
@@ -15,7 +23,7 @@ Ts=300.0
 radio = np.array([
 	#'238U','235U','232Th','40K'; 
 	[1.00, 1.00, 1.00, 1.00], #'rel_amt':relative to Earth's values
-	[0.14715, 0.29649, 0.10464, 0.45172], #'wtpercent' early earth values - normalized to total U
+	[0.15053, 0.28976, 0.10767, 0.45204], #'wtpercent' early earth values, i.e. 4.55Ga - normalized to total U
 	[0.155, 0.985, 0.0495, 0.555]]) #decay constants in 1/Ga
 
 def produce_heat(Mp,Mc,Qpl,t):
@@ -48,6 +56,7 @@ def plot_heat(source,title):
 	fname=str(str(title).split(' '))+'_temp_evolution.png'
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	plt.show()
+	plt.savefig(fname)
 
 def frank_kamenetskii(Ev,Tp):
 	theta=Ev*(Tp-Ts)/(R*(Tp**2))
