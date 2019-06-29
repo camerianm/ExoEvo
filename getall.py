@@ -15,7 +15,6 @@ R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
 Ts=300.0
 seconds=3.1536e16    #billion years to seconds conversion
-Qe = 3.611610290257257e-11
 error_tolerance = 1.0e-10
 Plithbase=13
 
@@ -97,10 +96,12 @@ def thermals_75GPa(composition,Tp,PGpa):
 
     for i in composition:
         wt=composition[i]
-
-        alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[i]['alpha']))
+        try:
+            alpha_tot = alpha_tot + wt * (alpha_coeffs(Tp,mins[i]['alpha']))
+        except:
+            alpha_tot = alpha_tot + wt * mins[i]['alpha']
         cp_tot = cp_tot + wt * (berman(Tp,mins[i]['Cp']))# * 1000./mins[mineral]['MW']
-        k_tot = k_tot + wt * mins[mineral]['k']
+        k_tot = k_tot + wt * mins[i]['k']
 
     return alpha_tot,cp_tot,k_tot
 
@@ -310,11 +311,24 @@ def thermals_at_P_ave(composition,P):
         istring=''.join(char for char in istring if char.isalnum())
         cpfile='CPgrid/'+istring+'_cpgrid.csv'
         alphafile='alphagrid/'+istring+'_alphagrid.csv'
-        cp_arr=np.genfromtxt(cpfile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
-        alpha_arr=np.genfromtxt(alphafile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
-        #Cps=(cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)
-        thermals[:,1]= thermals[:,1] + (composition[i] * (alpha_arr[:,0]*lo_wt + alpha_arr[:,1]*hi_wt))
-        thermals[:,2] = thermals[:,2]+ (composition[i] * ((cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)))
+        try:
+            cp_arr=np.genfromtxt(cpfile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
+            alpha_arr=np.genfromtxt(alphafile,delimiter=',',skip_header=1,usecols=(lP_index,lP_index+1))
+            #Cps=(cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)
+            thermals[:,1]= thermals[:,1] + (composition[i] * (alpha_arr[:,0]*lo_wt + alpha_arr[:,1]*hi_wt))
+            thermals[:,2] = thermals[:,2]+ (composition[i] * ((cp_arr[:,0]*lo_wt) + (cp_arr[:,1]*hi_wt)))
+        except:
+            cp_arr=np.empty_like(T_P)
+            alpha_arr=np.empty_like(T_P)
+            idict={istring:composition[i]}
+            j=0
+            for Tp in T_P:
+                alpha_arr[j], cp_arr[j], k_tot = thermals_75GPa(idict,Tp,0.0)
+                j=j+1
+
+            thermals[:,1] = thermals[:,1] + composition[i] * alpha_arr
+            thermals[:,2] = thermals[:,2] + composition[i] * cp_arr
+
     return thermals
 
 def Tdep_thermals(thermals,Tp):

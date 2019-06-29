@@ -140,7 +140,6 @@ minerals['Gt_maj']['MW'] =  401.5548
 minerals['Gt_maj']['Cp'] = [1141.7685759486499, 5127.450312161002, -68661630.24266943, 8666443057.619387, -77998.42038041295, 0.02286024906167644, -1.0434690058795255e-06]
 minerals['Gt_maj']['alpha'] = [-6.146137149815503e-05, 6.874900451835035e-06, 0.0003776047464721723, -0.006021140547371027, 6.999691815797051e-14, 29.99014130702474, 9.641809923501479e-07]
 minerals['Gt_maj']['k'] = 3.175656 #Pyrope value, not Maj, from Horai et al
-minerals['Gt_maj']['k'] = kdefault #NEED
 
 minerals['Ppv']['name'] ='Post-perovskite'
 minerals['Ppv']['stix'] ='MgPpv' #others: AlPpv
@@ -215,9 +214,11 @@ minerals['graphite']['stix'] ='NA'
 minerals['graphite']['MW'] =  12.011
 minerals['graphite']['Cp'] = [8478.51852821707, -223621.1213445313, -44122353.90491375, 1.0, 1843680.614067475, -1.7030717157236812, 0.0002869871013126768]
 minerals['graphite']['alpha'] = alphadefault #NEED
+minerals['graphite']['k'] = kdefault #NEED
 
 minerals['SiC']['name'] ='SiliconCarbide'
 minerals['SiC']['stix'] ='NA'
 minerals['SiC']['MW'] =  40.096
 minerals['SiC']['Cp'] = [3010.8800912999577, -72274.79173711604, -80861214.26622605, 1.0, 855574.6968907624, -0.42411412308964663, 0.00011864013074154238]
 minerals['SiC']['alpha'] = alphadefault #NEED
+minerals['SiC']['k'] = kdefault #NEED
