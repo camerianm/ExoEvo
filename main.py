@@ -14,7 +14,7 @@ from printall import Pf as Pf #print float, 4 decimal
 from mineralDB import minerals as minerals 
 
 # Although you can design your own composition, let's start with a sample planet from ExoPlex.
-file='test_exoplex_file_Ca0.05_Si0.954_Al0.06_Fe1.0.csv'
+file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 startline=1000 #This is where the core stops and the mantle begins, in that file.
 
 # User input values:
@@ -52,12 +52,13 @@ params={"Mp":Mp,"Mc":Mc,"CMF":Mc/Mp,\
         "d":d,"Vm":Vm,"Sa":Sa,\
         "pm":pm,"g":g,"Pcmb":Pcmb,\
         "c1":c1,"Ev":Ev,"visc0":visc0}
-prnt.unchanging(params)
+
+print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in params.items()))
 
 #Evolve your planet over time
 Tp=Tp0
 Ts=300.0
-dt=0.10
+dt=0.01
 Hts=[]             #A list of lists; column names are in get.keys['columns']
 t=0.0              #Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
 
@@ -85,5 +86,8 @@ Evolution=np.asarray(Hts)
 
 print(Pf(t), '\t', Pf(Tp), '\t', Pe(Ra), '\t',  Pe(production), '\t', Pe(loss),  '\t', Pf(production/loss))
 print()
+
+print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in composition.items()))
+print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in composition.items()))
 
 Temps=evolve.plot_heat(Evolution[:,(0,1)],"Temperature (K) vs Time (Ga)")

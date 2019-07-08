@@ -15,7 +15,7 @@ from printall import Pf as Pf #print float, 4 decimal
 import read_cumulative
 '''
 # Although you can design your own composition, let's start with a sample planet from ExoPlex.
-file='test_exoplex_file_Ca0.05_Si0.954_Al0.06_Fe1.0.csv'
+file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 startline=1000 #This is where the core stops and the mantle begins, in that file.
 
 # User input values:

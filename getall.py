@@ -18,13 +18,12 @@ seconds=3.1536e16    #billion years to seconds conversion
 error_tolerance = 1.0e-10
 Plithbase=13
 
-old_minlist=['forsterite','fayalite', 'orthoenstatite','clinoenstatite','periclase',
-	'corundum', 'spinel', 'diopside', 'diamond', 'ca-al pyroxene']
+#old_minlist=['forsterite','fayalite', 'orthoenstatite','clinoenstatite','periclase',
+#	'corundum', 'spinel', 'diopside', 'diamond', 'ca-al pyroxene']
+#composition = {'C2/c':0.00, 'Wus':0.00, 'Pv':0.20, 'an':0.00, 'O':0.03, 'Wad':0.40, 'Ring':0.01, 'Opx':0.20, 'Cpx':0.10, 'Aki':0.00, 'Gt_maj':0.05, 'Ppv':0.04, 'CF':0.00, 'st':0.00, 'q':0.00, 'ca-pv':0.00, 'cfs':0.00, 'coe':0.00, 'ky':0.00, 'seif':0.00}
 
 keys={'columns':['time', 'temp', 'Ra', 'production','loss','urey']}
 
-
-#composition = {'C2/c':0.00, 'Wus':0.00, 'Pv':0.20, 'an':0.00, 'O':0.03, 'Wad':0.40, 'Ring':0.01, 'Opx':0.20, 'Cpx':0.10, 'Aki':0.00, 'Gt_maj':0.05, 'Ppv':0.04, 'CF':0.00, 'st':0.00, 'q':0.00, 'ca-pv':0.00, 'cfs':0.00, 'coe':0.00, 'ky':0.00, 'seif':0.00}
 
 #print(thermals(composition,1600))
 
@@ -174,7 +173,7 @@ def sample_masses(R):
     return
 
 def sample_radii(M):
-    # Suggsts plausible radii for a given mass
+    # Suggests plausible radii for a given mass
     CMF_list=[0.10,0.20,0.30,0.40,0.50,0.60,0.70]
     print('\nFor a mass of ', M,'Me, here\'s a reasonable range of radii:')
     print('CMF\tRadius(Re)')
@@ -184,8 +183,6 @@ def sample_radii(M):
 
 def build(Mpl,Rpl,Tp0):
     # derives planet properties: Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
-    #print('Now building your planet. One moment...')
-
     if Rpl>1.50001:
         print('Oops! At',Rpl,'earth masses, your planet isn\'t likely to be rocky.')
         print('I\'ll run the largest plausibly "rocky" radius we expect - 1.5Re.')
@@ -225,11 +222,6 @@ def build(Mpl,Rpl,Tp0):
     #Determine volume-averaged pressure - not currently implemented - helpful for calibrating against P implicit in Cp calculation
     frac_height=representative_mantle(Rp,Rc)
     Prep=Pcmb-frac_height*(Pcmb-Plithbase)
-    #print('Representative mantle pressure: ', str(Pf(Prep)))
-    
-    #print('Done!')
-    
-    #Report-out
     return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
 
 def SIunits(Mpl,CMF,Rpl,CRF):

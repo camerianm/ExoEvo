@@ -98,8 +98,8 @@ def read_cols(file):
 def bulk_mass_fraction(file,startline):
 	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
 	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
-	columns=read_cols(file)[10:-1] #Excludes iron phase
-	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[10:-1])))
+	columns=read_cols(file)[11:-2] #Excludes iron phase and mass
+	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[11:-2])))
 	return bulkmassfraction
 
 def plot_rel_contributions(radii,wt_local):
@@ -120,7 +120,7 @@ def plot_rel_contributions(radii,wt_local):
 	return ' '
 
 #To test these functions independent of ExoEvo, uncomment the below:
-#file='test_exoplex_file_Ca0.05_Si0.954_Al0.06_Fe1.0.csv'
+#file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 #startline=1000  # This is the line where the mantle begins in the sample file. All NANs except Fe above it.
 #separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
 #print('\nTesting calculation of mass fractions:\n',bulk_mass_fraction(file,startline))
