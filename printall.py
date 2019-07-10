@@ -14,7 +14,9 @@ def Pf(n):
 	return a #float(format(n, '.4f'))
 
 
-def unchanging(params):
+def unchanging(params, composition):
+    
+	print()
 	print('Planet mass:\t', Pe(params['Mp']), 'kg')
 	print('Core mass:\t', Pe(params['Mc']), 'kg')
 	print('Planet radius:\t', Pe(params['Rp']), 'm')
@@ -26,6 +28,13 @@ def unchanging(params):
 	print('Visc constant:\t', Pf(params['c1']))
 	print('Activ. energy:\t', Pe(params['Ev']), 'J/mol')
 	print('Visc prefactor:\t', Pe(params['visc0']), "Pa s")
+	print()
+    
+	print('Mantle composition:')
+	for i in composition:
+		if composition[i]>0:
+			print(i, '\t', Pf(100*composition[i]), '%')
+
 	return
 
 def options(component):
