@@ -15,24 +15,21 @@ def planets_from_summary():
 		if temp[0] not in files:
 			files[temp[0]]={}
 		files[temp[0]][temp[1]]=float(temp[2])
-	#print(len(files.keys()))
-	#print(files[temp[0]].keys())
 
 	for file in files:
 		files[file]['composition']={}
 		for mineral in minerals.keys():
-			if mineral in files[file]:
-				if files[file][mineral]>0:
+			if (mineral in files[file]) and (files[file][mineral]>0):
 					files[file]['composition'][mineral]=files[file][mineral]
-				try:
-					del files[file][mineral]
-				except KeyError:
-					pass
+			try:
+				del files[file][mineral]
+			except KeyError:
+				pass
 		files[file]['composition']=get.adds_up(files[file]['composition'])
-		print(file, files[file].keys())
-		print()
-		print(file, files[file]['composition'].keys())
-		print()
-		print()
+		#print("{" + "\n".join("{}: {}".format(k, v) for k, v in files[file]['composition'].items()) + "}")
+		#print(file, files[file].keys())
+		print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in files[file]['composition'].items()) + "}")
+		#print(file, files[file]['composition'].keys())
+	#exit()
 	return(files)
 

@@ -18,7 +18,7 @@ Qe = 1.055e-11 		# If bulk silicate earth Urey ratio (BSE) is assumed, crust is 
 					#    Mcrust=0.006Mmantle ; Mcore=0.33*Mearth.
 R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
-Ts=300.0
+Ts = 300.0
 
 radio = np.array([
 	#'238U','235U','232Th','40K'; 
@@ -53,10 +53,9 @@ def plot_heat(source,title):
 	plt.ylim(miny,maxy)
 	plt.grid(which='both',linestyle='--')
 	plt.title(str(title))
-	fname=str(str(title).split(' '))+'_temp_evolution.png'
+	fname=str(str(title).split(' '))+'_temp_evolution.pdf'
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	plt.show()
-	plt.savefig(fname)
 
 def frank_kamenetskii(Ev,Tp):
 	theta=Ev*(Tp-Ts)/(R*(Tp**2))

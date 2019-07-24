@@ -98,8 +98,8 @@ def read_cols(file):
 def bulk_mass_fraction(file,startline):
 	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
 	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
-	columns=read_cols(file)[10:-1] #Excludes iron phase
-	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[10:-1])))
+	columns=read_cols(file)[11:-2] #Excludes iron phase and mass
+	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[11:-2])))
 	return bulkmassfraction
 
 def plot_rel_contributions(radii,wt_local):
@@ -120,7 +120,7 @@ def plot_rel_contributions(radii,wt_local):
 	return ' '
 
 #To test these functions independent of ExoEvo, uncomment the below:
-#file='test_exoplex_file_Ca0.05_Si0.954_Al0.06_Fe1.0.csv'
+#file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 #startline=1000  # This is the line where the mantle begins in the sample file. All NANs except Fe above it.
 #separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
 #print('\nTesting calculation of mass fractions:\n',bulk_mass_fraction(file,startline))
@@ -129,7 +129,7 @@ def plot_rel_contributions(radii,wt_local):
 #Columns 5 and 6 are alpha and Cp assuming Tp=1600K. Useful if investigating static Cp and a in ExoEvo.
 #Cp likely (?) needs mass-based averaging scheme. Alpha likely (?) needs volume-based averaging scheme.
 #Columns 10 onward are minerals. They are in variable order, and there are a variable number of them.
-
+'''
 def build(Mpl,file,Tp0):
     startline=1000
     with open(file) as f:
@@ -146,6 +146,36 @@ def build(Mpl,file,Tp0):
                 pm=(Mp-Mc)/Vm
                 Pcmb=np.float(line.split(separator)[3])
     return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
+
+'''
+
+def build(file,Tp0):
+    startline=1000
+    with open(file) as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                pass
+                #minerals=line.split(separator)[11:-2]
+            elif i == 1:
+                Rp=np.float(line.split(separator)[0])*1000
+                Rpl=Rp/Re
+                Tcmb=get.CMB_T(Rp,Tp0)
+                Sa=4*np.pi*Rp**2
+                #Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
+            elif i == startline+1:
+                Rc=np.float(line.split(separator)[1])*1000
+                d=Rp-Rc
+                Vm=(4./3.)*np.pi*(Rp**3 - Rc**3)
+                Pcmb=np.float(line.split(separator)[3])
+                Mc=np.float(line.split(separator)[-1])
+            elif i == 3000:
+                Mp=np.float(line.split(separator)[-1])
+                pm=(Mp-Mc)/Vm
+                g=Grav*Mp/(Rp**2)
+    return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
+
+
+
 '''       
     # add ability to use column headers - particularly vital for mineralogy
 	a=np.genfromtxt(file,delimiter=',',colnames=TRUE, usecols=(),skip_header=coresteps)

@@ -63,8 +63,8 @@ for item in mins:
     P_Gpa=P/(10000)
     f.write('NaN,'+(','.join(map(str, P_Gpa)))+'\n')
     for Ti in T:
-        volume=(mineral.volume(T=Ti, P=P))
-        dVdT=(mineral.volume(T=Ti, P=P, deriv={'dT':1}))
+        volume=(mineral.volume(Ti, P)) #converts molar volume to a characteristic length
+        dVdT=(mineral.volume(Ti, P, deriv={'dT':1})) #converts volume change to a length change
         alpha=(1/volume)*dVdT
         alpha=','.join(map(str, alpha))
         f.write(str(Ti)+','+alpha+'\n')

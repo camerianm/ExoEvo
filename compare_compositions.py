@@ -15,7 +15,7 @@ from printall import Pf as Pf #print float, 4 decimal
 import read_cumulative
 '''
 # Although you can design your own composition, let's start with a sample planet from ExoPlex.
-file='test_exoplex_file_Ca0.05_Si0.954_Al0.06_Fe1.0.csv'
+file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 startline=1000 #This is where the core stops and the mantle begins, in that file.
 
 # User input values:
@@ -47,7 +47,7 @@ for file in files:
     Rpl=files[file]['Radius_Re']             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
     Tp0=2000          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
     tmax=4.55           #ending time, in Ga                                Earth=4.55
-    Qp=0.8
+    Qp=1.0
 
 
     # Build your mantle and acquire its unchanging material properties.
