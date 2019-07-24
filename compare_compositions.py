@@ -45,7 +45,7 @@ for file in files:
     method='dynamic'    #static, dynamic, or benchmark thermal parameters
     Mpl=files[file]['Mass_Me']            #Planet mass in Me - usually between 0.5 and 5     Earth = 1.0
     Rpl=files[file]['Radius_Re']             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
-    Tp0=1800          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
+    Tp0=2000          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
     tmax=4.55           #ending time, in Ga                                Earth=4.55
     Qp=0.8
 

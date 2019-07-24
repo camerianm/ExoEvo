@@ -38,7 +38,7 @@ composition=get.adds_up(composition)
 method='dynamic'    #static, dynamic, or benchmark thermal parameters
 Mpl=1.0            #Planet mass in Me - usually between 0.5 and 5     Earth = 1.0
 Rpl=1.0             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
-Tp0=1800          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
+Tp0=2000          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
 tmax=4.55           #ending time, in Ga                                Earth=4.55
 Qp=1.0
 
