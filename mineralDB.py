@@ -97,7 +97,7 @@ minerals['O']['stix'] ='Fo'
 minerals['O']['MW'] =  140.6931
 minerals['O']['Cp'] = [1142.613289120178, 4997.614795172775, -68659557.8520133, 8636718934.346085, -75450.88927443516, 0.020139386466534997, -1.0865270895455417e-06]
 minerals['O']['alpha'] = [-5.197625793496891e-05, 5.79353681272302e-06, 0.00031951659319754403, -0.005088606242304254, 6.330813381822515e-14, 25.232587126150463, 8.08430089196178e-07]
-minerals['O']['k'] = 5.10448
+minerals['O']['k'] = 5.10448 #5.858
 
 minerals['Wad']['name'] ='Mg-Wadsleyite'
 minerals['Wad']['stix'] ='MgWds'
@@ -214,11 +214,13 @@ minerals['graphite']['stix'] ='NA'
 minerals['graphite']['MW'] =  12.011
 minerals['graphite']['Cp'] = [8478.51852821707, -223621.1213445313, -44122353.90491375, 1.0, 1843680.614067475, -1.7030717157236812, 0.0002869871013126768]
 minerals['graphite']['alpha'] = alphadefault #NEED
-minerals['graphite']['k'] = kdefault #NEED
+minerals['graphite']['k'] = 167.36 #NEED - current val from https://thermtest.com/materials-database#graphite
 
 minerals['SiC']['name'] ='SiliconCarbide'
 minerals['SiC']['stix'] ='NA'
 minerals['SiC']['MW'] =  40.096
 minerals['SiC']['Cp'] = [3010.8800912999577, -72274.79173711604, -80861214.26622605, 1.0, 855574.6968907624, -0.42411412308964663, 0.00011864013074154238]
 minerals['SiC']['alpha'] = alphadefault #NEED
-minerals['SiC']['k'] = kdefault #NEED
+minerals['SiC']['k'] = 41.84 #NEED - from thermtest
+
+#minerals['diamond']['k'] = 534.91 #NEED
