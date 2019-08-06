@@ -16,10 +16,11 @@ from mineralDB import minerals as minerals
 # Although you can design your own composition, let's start with a sample planet from ExoPlex.
 file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 startline=1000 #This is where the core stops and the mantle begins, in that file.
+frac_Fe_phases=0.1 #Arbitrary example - i.e. mantle is 90% Mg phases, 10% Fe phases where Mg-Fe SS series exist
 
 # User input values:
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
-exo_composition=fromexo.bulk_mass_fraction(file,startline)
+exo_composition=fromexo.bulk_mass_fraction(file,startline,frac_Fe_phases)
 composition = exo_composition
 
 '''

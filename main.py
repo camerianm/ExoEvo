@@ -11,7 +11,7 @@ import getall as get
 import printall as prnt
 from printall import Pe as Pe #print scientific notation, 4 decimal
 from printall import Pf as Pf #print float, 4 decimal
-from mineralDB import minerals as minerals 
+from mineralDB import minerals
 
 
 
@@ -24,6 +24,7 @@ ExoPlex='TRUE'
 #What exoplex file should I import, and where does the mantle start?
 file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
 startline=1000 #This is where the core stops and the mantle begins, in that file.
+frac_Fe_phases=0.1 #Arbitrary example - i.e. mantle is 90% Mg phases, 10% Fe phases where Mg-Fe SS series exist
 
 #Info about your planet - note that Mpl and Rpl are *overwritten* if ExoPlex='TRUE'!
 Mpl=1.0             #Planet mass in Me - usually between 0.5 and 5. ignored if ExoPlex = 'TRUE' Earth = 1.0
@@ -45,7 +46,7 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
 if ExoPlex == 'TRUE':
-  composition=fromexo.bulk_mass_fraction(file,startline)
+  composition=fromexo.bulk_mass_fraction(file,startline,frac_Fe_phases)
   Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=fromexo.build(file=file,Tp0=Tp0)
 
 else: #custom composition

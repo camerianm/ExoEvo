@@ -95,11 +95,105 @@ def read_cols(file):
 	lines[-1]=lines[-1][0:-1] #removes newline character 
 	return lines
 
-def bulk_mass_fraction(file,startline):
+def bulk_mass_fraction(file,startline,frac_Fe_phases):
+	from mineralDB import exonames as e
+
 	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
 	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
+	phasefrac = 0.01*np.asarray(M_runningtotal[11:-2])
 	columns=read_cols(file)[11:-2] #Excludes iron phase and mass
-	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[11:-2])))
+	fFe = frac_Fe_phases
+	emfrac = []
+	alts=[]
+
+	for colno, col in enumerate(columns): #converts exoplex columns to sample pure phases
+		for i in range(len(e[col])):
+			alts.append(e[col][i])
+		#alts.append(e[col])
+		if len(e[col])>1:
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		else:
+			emfrac.append(phasefrac[colno])
+		'''
+		if col == 'C2/c':
+			alts.append('hpcEn')
+			emfrac.append(phasefrac[colno])
+		elif col == 'Wus':
+			alts.append('Per')
+			alts.append('Wus')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Pv':
+			alts.append('MgPrv')
+			alts.append('FePrv')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'O':
+			alts.append('Fo')
+			alts.append('Fa')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Wad':
+			alts.append('MgWds')
+			alts.append('FeWds')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Ring': 
+			alts.append('MgRwd')
+			alts.append('FeRwd')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Opx':
+			alts.append('En')
+			alts.append('Fs')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Cpx':
+			alts.append('cEn')
+			emfrac.append(phasefrac[colno])
+		elif col == 'Aki':
+			alts.append('MgAki')
+			alts.append('FeAki')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'Gt_maj':
+			alts.append('Maj')
+			emfrac.append(phasefrac[colno])
+		elif col == 'Ppv':
+			alts.append('MgPpv')
+			alts.append('FePpv')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'CF':
+			alts.append('MgCf')
+			alts.append('FeCf')
+			emfrac.append(phasefrac[colno]*(1-fFe))
+			emfrac.append(phasefrac[colno]*(fFe))
+		elif col == 'ca-pv':
+			alts.append('CaPrv')
+			emfrac.append(phasefrac[colno])
+		elif col == 'cfs': 
+			alts.append('hpcFs')
+			emfrac.append(phasefrac[colno])
+		elif col == 'Sp':
+			alts.append('Spl')
+			emfrac.append(phasefrac[colno])
+		elif col == 'st':
+			alts.append('Sti')
+			emfrac.append(phasefrac[colno])
+		elif col == 'q':
+			alts.append('Qz')
+			emfrac.append(phasefrac[colno])
+		else:
+			alts.append(col.capitalize())
+			emfrac.append(phasefrac[colno])
+		'''
+		# elif col == 'an': alts.append(col)
+		# elif col == 'coe': alts.append(col)
+		# elif col == 'ky': alts.append(col)
+		# elif col == 'seif': alts.append(col)
+	bulkmassfraction=dict(zip(alts, emfrac))
 	return bulkmassfraction
 
 def plot_rel_contributions(radii,wt_local):
@@ -173,29 +267,3 @@ def build(file,Tp0):
                 pm=(Mp-Mc)/Vm
                 g=Grav*Mp/(Rp**2)
     return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
-
-
-
-'''       
-    # add ability to use column headers - particularly vital for mineralogy
-	a=np.genfromtxt(file,delimiter=',',colnames=TRUE, usecols=(),skip_header=coresteps)
-	headers=f.open(file,'r').readlines[0].split(',')
-	f.close()
-
-	print(type(headers))
-	print(a['Pressure'])
-	exit()
-
-	Planet={}
-	Planet['Rp']=1000*np.max(a['Radius'])
-	Planet['Rc']=1000*np.min(a['Radius'])
-	Planet['Pcmb']=np.max(a['Pressure'])
-	Planet['composition']=bulkmassfraction(file,startline)
-
-	comp={}
-
-	for row in range(len(a[:,0])):
-		for m in range(len(headers[6:])):
-			comp[headers[m]]=a[row,6+m]
-			P=a[row,2]
-'''

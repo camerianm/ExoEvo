@@ -29,9 +29,10 @@ def unchanging(params, composition):
 	print('Activ. energy:\t', Pe(params['Ev']), 'J/mol')
 	print('Visc prefactor:\t', Pe(params['visc0']), "Pa s")
 	print()
-    
 	print('Mantle composition:')
-	for i in composition:
+	
+	keylist=sorted(composition.keys())
+	for i in keylist:
 		if composition[i]>0:
 			print(i, '\t', Pf(100*composition[i]), '%')
 

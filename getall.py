@@ -36,8 +36,7 @@ def adds_up(composition):
         for i in composition:
             new=composition[i]/subtotal
             composition[i]=new
-            #print(i,'\t\t',str(Pf(composition[i])))
-        #print(composition)
+
     return(composition)
 
 def TdepVisc(composition):
@@ -280,7 +279,7 @@ def thermals_at_P_ave(composition,P):
 
     #The below can be changed if indexing scheme changes from 1 Gpa resolution
 
-    gridstandard='alphagrid/O_alphagrid.csv'
+    gridstandard='alphagrid/Fo_alphagrid.csv'
 
     lP_index=int(np.floor(P))
     uP_index=lP_index+2 #Only two values print due to string read-in mode, one Gpa apart.
