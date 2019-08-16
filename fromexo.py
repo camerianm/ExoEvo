@@ -149,7 +149,7 @@ def build(Mpl,file,Tp0):
 
 '''
 
-def build(file,Tp0):
+def build(planet,file):
     startline=1000
     with open(file) as f:
         for i, line in enumerate(f):
@@ -157,22 +157,22 @@ def build(file,Tp0):
                 pass
                 #minerals=line.split(separator)[11:-2]
             elif i == 1:
-                Rp=np.float(line.split(separator)[0])*1000
-                Rpl=Rp/Re
-                Tcmb=get.CMB_T(Rp,Tp0)
-                Sa=4*np.pi*Rp**2
+                planet['Rp']=np.float(line.split(separator)[0])*1000
+                planet['Rpl']=planet['Rp']/Re
+                planet['Tcmb']=get.CMB_T(planet['Rp'],planet['Tp0'])
+                planet['Sa']=4*np.pi*planet['Rp']**2
                 #Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
             elif i == startline+1:
-                Rc=np.float(line.split(separator)[1])*1000
-                d=Rp-Rc
-                Vm=(4./3.)*np.pi*(Rp**3 - Rc**3)
-                Pcmb=np.float(line.split(separator)[3])
-                Mc=np.float(line.split(separator)[-1])
+                planet['Rc']=np.float(line.split(separator)[1])*1000
+                planet['d']=planet['Rp']-planet['Rc']
+                planet['Vm']=(4./3.)*np.pi*(planet['Rp']**3 - planet['Rc']**3)
+                planet['Pcmb']=np.float(line.split(separator)[3])
+                planet['Mc']=np.float(line.split(separator)[-1])
             elif i == 3000:
-                Mp=np.float(line.split(separator)[-1])
-                pm=(Mp-Mc)/Vm
-                g=Grav*Mp/(Rp**2)
-    return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
+                planet['Mp']=np.float(line.split(separator)[-1])
+                planet['pm']=(planet['Mp']-planet['Mc'])/planet['Vm']
+                planet['g']=Grav*planet['Mp']/(planet['Rp']**2)
+    return planet
 
 
 

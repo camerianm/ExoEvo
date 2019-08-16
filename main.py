@@ -42,15 +42,17 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 #End of user input values
 ########################################################################
 
+planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qp':Qp, 'Tp0':Tp0, 'Pref':Pref}
 
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
 if ExoPlex == 'TRUE':
   composition=fromexo.bulk_mass_fraction(file,startline)
-  Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=fromexo.build(file=file,Tp0=Tp0)
+  planet=fromexo.build(planet=planet,file=file)
 
 else: #custom composition
   composition = my_composition
-  Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
+  planet=get.build(planet)
+  #Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
 
 
 if Pref==0:
@@ -60,16 +62,12 @@ if Pref==0:
 composition=get.adds_up(composition)
 
 # Build your mantle and acquire its unchanging material properties.
-Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
 c1,Ev,visc0=get.TdepVisc(composition)
-thermals=get.thermals_at_P_ave(composition,0.5*Pcmb)
-
-params={"Mp":Mp,"Mc":Mc,"CMF":Mc/Mp,\
-        "Rp":Rp,"Rc":Rc,"CRF":Rc/Rp,\
-        "d":d,"Vm":Vm,"Sa":Sa,\
-        "pm":pm,"g":g,"Pcmb":Pcmb,\
-        "c1":c1,"Ev":Ev,"visc0":visc0}
-prnt.unchanging(params,composition)
+thermals=get.thermals_at_P_ave(composition,0.5*planet['Pcmb'])
+planet['c1']=c1
+planet['Ev']=Ev
+planet['visc0']=visc0
+print(planet)
 
 #Evolve your planet over time
 Tp=Tp0
@@ -85,14 +83,14 @@ while t <= tmax:
 
     if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
     if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
-    if method=='benchmark': alpha,cp,k,pm=3.7e-5,1250.,5.0,3340. #common benchmark values
+    if method=='benchmark': alpha,cp,k,planet['pm']=3.7e-5,1250.,5.0,3340. #common benchmark values
     
     viscT=get.viscosity(Ev,visc0,Tp)
-    Ra=get.rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k)
+    Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
     
-    production=evolve.produce_heat(Mp,Mc,Qp,t)
-    loss=evolve.flux_heat(Sa,c1,k,Tp,d,Ra,Ev)
-    dTp=(dt*get.seconds*(production-loss))/(cp*pm*Vm) #Potentially change to (cp*Mp)?
+    production=evolve.produce_heat(planet['Mp'],planet['Mc'],planet['Qp'],t)
+    loss=evolve.flux_heat(planet['Sa'],planet['c1'],k,Tp,planet['d'],Ra,planet['Ev'])
+    dTp=(dt*get.seconds*(production-loss))/(cp*planet['pm']*planet['Vm']) #Potentially change to (cp*Mp)?
     Hts.append([t,Tp,Ra,production,loss,production/loss])
     
     Tp=Tp+dTp
