@@ -15,27 +15,38 @@ def Pf(n):
 
 
 def unchanging(params, composition):
+    print()
+    print('Planet mass:\t', Pf(params['Mpl']), 'Me')
+    print('Planet mass:\t', Pe(params['Mp']), 'kg')
+    print('Core mass:\t', Pe(params['Mc']), 'kg')
+    print('Core mass frac:\t\t', Pf(params['CMF']))
+    print()
+    print('Planet radius:\t', Pf(params['Rpl']), 'Re')
+    print('Planet radius:\t', Pf(params['Rp']/1000), 'km')
+    print('Core radius:\t', Pf(params['Rc']/1000), 'km')
+    print('Core radius frac:\t', Pf(params['CRF']))
+    print()
+    print('Mantle depth:\t', Pf(params['d']/1000), 'km')
+    print('Mantle volume:\t', Pe(params['Vm']/(1000*1000*1000)), 'km3')
+    print('Mantle density:\t', Pf(params['pm']), 'kg m-3')
+    print('Surface grav:\t', Pf(params['g']), 'm s-2')
+    print('Surface area:\t', Pe(params['Sa']/(1000*1000)), 'km2')
+    print()
+    print('Core-mantle boundary pressure:\t', Pf(params['Pcmb']), 'Gpa')
+    print('Reference pressure:\t', Pf(params['Pref']), 'Gpa')
+    print('Radiogenic abundance:\t', Pf(params['Qpl']), 'x Earth')
+    print('Starting CMB temp:\t', Pf(params['Tcmb']), 'K')
+    print('Viscosity prefactor:\t', Pe(params['visc0']), "Pa s")
+    print('Activation energy:\t', Pe(params['Ev']), 'J/mol')
+    print()
     
-	print()
-	print('Planet mass:\t', Pe(params['Mp']), 'kg')
-	print('Core mass:\t', Pe(params['Mc']), 'kg')
-	print('Planet radius:\t', Pe(params['Rp']), 'm')
-	print('Core radius:\t', Pe(params['Rc']), 'm')
-	print('Mantle depth:\t', Pe(params['d']), 'm')
-	print('Surface area:\t', Pe(params['Sa']), 'm2')
-	print('Density:\t', Pf(params['pm']), 'kg m-3')
-	print('Surf gravity:\t', Pf(params['g']), 'm s-2')
-	print('Visc constant:\t', Pf(params['c1']))
-	print('Activ. energy:\t', Pe(params['Ev']), 'J/mol')
-	print('Visc prefactor:\t', Pe(params['visc0']), "Pa s")
-	print()
-    
-	print('Mantle composition:')
-	for i in composition:
-		if composition[i]>0:
-			print(i, '\t', Pf(100*composition[i]), '%')
-
-	return
+    print('Mantle composition:')
+    for i in composition:
+        if composition[i]>0:
+            print(i, '\t', Pf(100*composition[i]), '%')
+    print()
+    print()
+    return
 
 def options(component):
     print('\n')

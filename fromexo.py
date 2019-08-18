@@ -172,6 +172,9 @@ def build(planet,file):
                 planet['Mp']=np.float(line.split(separator)[-1])
                 planet['pm']=(planet['Mp']-planet['Mc'])/planet['Vm']
                 planet['g']=Grav*planet['Mp']/(planet['Rp']**2)
+                planet['CMF']=planet['Mc']/planet['Mp']
+                planet['CRF']=planet['Rc']/planet['Rp']
+
     return planet
 
 

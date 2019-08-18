@@ -47,22 +47,23 @@ for file in files:
     Rpl=files[file]['Radius_Re']             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
     Tp0=2000          #starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
     tmax=4.55           #ending time, in Ga                                Earth=4.55
-    Qp=1.0
+    Qpl=1.0
+    Pref=12.0
 
-
-    # Build your mantle and acquire its unchanging material properties.
+    planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0}     # Build your mantle and acquire its unchanging material properties.
     #Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
-    Mp=files[file]['Mass_kg']
-    Mc=Mp*files[file]['CMF']
-    Rp=files[file]['Radius_m']
-    Rc=Rp*files[file]['CRF']
-    d=files[file]['Mantle_depth']
-    Vm=files[file]['Mantle_vol']
-    Sa=4*np.pi*Rp**2
-    pm=files[file]['Mantle_rho']
-    g=get.Grav*Mp/(Rp**2)
-    Pcmb=files[file]['CMBP']
-    Tcmb=get.CMB_T(Rp,Tp0)
+    planet['Mp']=files[file]['Mass_kg']
+    planet['Mc']=planet['Mp']*files[file]['CMF']
+    planet['Rp']=files[file]['Radius_m']
+    planet['Rc']=planet['Rp']*files[file]['CRF']
+    planet['d']=files[file]['Mantle_depth']
+    planet['Vm']=files[file]['Mantle_vol']
+    planet['Sa']=4*np.pi*planet['Rp']**2
+    planet['pm']=files[file]['Mantle_rho']
+    planet['g']=get.Grav*planet['Mp']/(planet['Rp']**2)
+    planet['Pcmb']=files[file]['CMBP']
+    planet['Tcmb']=get.CMB_T(planet['Rp'],planet['Tp0'])
+    planet['Pref']=Pref
 
     composition=files[file]['composition']
 
@@ -84,8 +85,8 @@ for file in files:
     t=0.0              #Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
 
 
-    c1,Ev,visc0=get.TdepVisc(composition)
-    thermals=get.thermals_at_P_ave(composition,0.5*Pcmb)
+    planet['c1'],planet['Ev'],planet['visc0']=get.TdepVisc(composition)
+    thermals=get.thermals_at_P_ave(composition,planet['Pref'])
 
     start=time.time()
     while t <= tmax:
@@ -93,14 +94,14 @@ for file in files:
         if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
         if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1625)
 
-        viscT=get.viscosity(Ev,visc0,Tp)
-        Ra=get.rayleigh(d,g,pm,Tp,Ts,viscT,alpha,cp,k)
-
-        production=evolve.produce_heat(Mp,Mc,Qp,t)
-        loss=evolve.flux_heat(Sa,c1,k,Tp,d,Ra,Ev)
-        dTp=(dt*get.seconds*(production-loss))/(cp*pm*Vm) #Potentially change to (cp*Mp)?
+        viscT=get.viscosity(planet,Tp)
+        Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
+        
+        production=evolve.produce_heat(planet,t)
+        loss=evolve.flux_heat(planet,k,Tp,Ra)
+        dTp=(dt*get.seconds*(production-loss))/(cp*planet['pm']*planet['Vm']) #Potentially change to (cp*Mp)?
         Hts.append([t,Tp,Ra,production,loss,production/loss])
-
+        
         Tp=Tp+dTp
         t=t+dt
 

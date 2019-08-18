@@ -34,8 +34,6 @@ minerals['cfs'] = {}
 minerals['coe'] = {}
 minerals['ky'] = {}
 minerals['seif'] = {}
-minerals['graphite'] = {}
-minerals['SiC'] = {}
 minerals['Sp'] = {}
 
 kdefault = 5.00
@@ -125,21 +123,6 @@ minerals['Sp']['name'] ='Spinel'
 minerals['Sp']['stix'] ='Spl'
 minerals['Sp']['k'] = 9.47676
 
-minerals['graphite']['name'] ='Graphite'
-minerals['graphite']['stix'] ='NA'
-minerals['graphite']['MW'] =  12.011
-minerals['graphite']['Cp'] = [8478.51852821707, -223621.1213445313, -44122353.90491375, 1.0, 1843680.614067475, -1.7030717157236812, 0.0002869871013126768]
-minerals['graphite']['alpha'] = alphadefault #NEED
-minerals['graphite']['k'] = 167.36 #NEED - current val from https://thermtest.com/materials-database#graphite
-
-minerals['SiC']['name'] ='SiliconCarbide'
-minerals['SiC']['stix'] ='NA'
-minerals['SiC']['MW'] =  40.096
-minerals['SiC']['Cp'] = [3010.8800912999577, -72274.79173711604, -80861214.26622605, 1.0, 855574.6968907624, -0.42411412308964663, 0.00011864013074154238]
-minerals['SiC']['alpha'] = alphadefault #NEED
-minerals['SiC']['k'] = 41.84 #NEED - from thermtest
-
-#minerals['diamond']['k'] = 534.91 #NEED
 
 minerals['sample_bulk'] = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
                'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \

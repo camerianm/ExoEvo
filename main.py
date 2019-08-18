@@ -28,7 +28,7 @@ startline=1000 #This is where the core stops and the mantle begins, in that file
 #Info about your planet - note that Mpl and Rpl are *overwritten* if ExoPlex='TRUE'!
 Mpl=1.0             #Planet mass in Me - usually between 0.5 and 5. ignored if ExoPlex = 'TRUE' Earth = 1.0
 Rpl=1.0             #Relative heat production per kg mantle, vs Earth  Earth = 1.0
-Qp=1.0              #Planet's starting radiogenic abundance, per kg mantle
+Qpl=1.0              #Planet's starting radiogenic abundance, per kg mantle
 method='dynamic'    #'static', 'dynamic', or 'benchmark' thermal parameters
 Tp0=1800            #starting mantle potential temperature in K        Earth = 1800.0 (initial), 1650 (present)
 Pref=5.0            #reference pressure for thermal calculations, in GPa. If Pref=0, Pref is set to half the CMB pressure.
@@ -42,7 +42,7 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 #End of user input values
 ########################################################################
 
-planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qp':Qp, 'Tp0':Tp0, 'Pref':Pref}
+planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref}
 
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
 if ExoPlex == 'TRUE':
@@ -56,18 +56,15 @@ else: #custom composition
 
 
 if Pref==0:
-    Pref=0.5*Pcmb
+    planet['Pref']=0.5*planet['Pcmb']
 
 # Make sure your planet is self-consistent
 composition=get.adds_up(composition)
 
 # Build your mantle and acquire its unchanging material properties.
-c1,Ev,visc0=get.TdepVisc(composition)
-thermals=get.thermals_at_P_ave(composition,0.5*planet['Pcmb'])
-planet['c1']=c1
-planet['Ev']=Ev
-planet['visc0']=visc0
-print(planet)
+planet['c1'],planet['Ev'],planet['visc0']=get.TdepVisc(composition)
+thermals=get.thermals_at_P_ave(composition, Pref)
+prnt.unchanging(planet, composition)
 
 #Evolve your planet over time
 Tp=Tp0
@@ -85,11 +82,11 @@ while t <= tmax:
     if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
     if method=='benchmark': alpha,cp,k,planet['pm']=3.7e-5,1250.,5.0,3340. #common benchmark values
     
-    viscT=get.viscosity(Ev,visc0,Tp)
+    viscT=get.viscosity(planet,Tp)
     Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
     
-    production=evolve.produce_heat(planet['Mp'],planet['Mc'],planet['Qp'],t)
-    loss=evolve.flux_heat(planet['Sa'],planet['c1'],k,Tp,planet['d'],Ra,planet['Ev'])
+    production=evolve.produce_heat(planet,t)
+    loss=evolve.flux_heat(planet,k,Tp,Ra)
     dTp=(dt*get.seconds*(production-loss))/(cp*planet['pm']*planet['Vm']) #Potentially change to (cp*Mp)?
     Hts.append([t,Tp,Ra,production,loss,production/loss])
     

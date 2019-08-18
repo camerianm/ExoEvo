@@ -59,8 +59,8 @@ def TdepVisc(composition):
 
     return c1_tot,Ev_tot,visc0_tot
 
-def viscosity(Ev,visc0,Tp):
-	visc=visc0*np.exp(Ev/(R*Tp))
+def viscosity(planet,Tp):
+	visc=planet['visc0']*np.exp(planet['Ev']/(R*Tp))
 	return visc
 
 def rayleigh(planet,Tp,Ts,viscT,alpha,cp,k):
