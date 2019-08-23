@@ -33,30 +33,17 @@ def adds_up(composition):
 
 def TdepVisc(composition):
     # Look-up table for baseline constants used in equations for temperature-dependent viscosity.
-    # Currently doesn't implement different minerals, only olivine. Currently seeking rheological data.
-    # Will then add to mineral dictionary in minDB.py.
+    # Linear average of species whose activation energies are currently in dictionary. 
+    # Not all species have Ev populated.
     
     # Olivine values
     c1_default=1.0
     Ev_default=300.0e3
     visc0_default=4.0e10
     
-    c1_tot=0.0
-    Ev_tot=0.0
-    visc0_tot=0.0
-    
-    for i in composition:
-        mineral=i
-        wt=composition[i]
-        
-        c1=c1_default
-        Ev=Ev_default
-        visc0=visc0_default
-        
-        c1_tot=c1_tot+(c1*wt)
-        Ev_tot=Ev_tot+(Ev*wt)
-        visc0_tot=visc0_tot+(visc0*wt)
-
+    Ev_tot=average_property(composition, 'Ev', Ev_default)
+    visc0_tot=visc0_default
+    c1_tot=c1_default
     return c1_tot,Ev_tot,visc0_tot
 
 def viscosity(planet,Tp):
@@ -67,11 +54,13 @@ def rayleigh(planet,Tp,Ts,viscT,alpha,cp,k):
 	Ra=(planet['pm']**2)*planet['g']*alpha*(Tp-Ts)*(planet['d']**3)*cp/(k*viscT)
 	return Ra
 
-def CMF_estimate(Mpl,Rpl):     # Estimate core mass fraction from mass-radius relationships
+def CMF_estimate(Mpl,Rpl):
+    # Estimate core mass fraction from mass-radius relationships
     CMF=(1/0.21)*(1.07 - (Rpl/(Mpl**(1.0/3.7))))  #per doi:10.3847/0004-637X/819/2/127, close fit to arxiv.org/abs/1905.06530
     return CMF
 
-def CRF_estimate(Mpl,CMF,Rpl):     #Estimate core radius fraction from model results in https://tinyurl.com/y7wlvamw, from arxiv.org/abs/1905.06530
+def CRF_estimate(Mpl,CMF,Rpl):
+    #Estimate core radius fraction from model results in https://tinyurl.com/y7wlvamw, from arxiv.org/abs/1905.06530
     CM_me=CMF*Mpl   # error margin under ~1% (of actual core radius) for most cases 
     cr_scaling_exponent=-0.0156950415578063*(CMF-0.45547)+0.259709441585
     cr_scaling_coefficient=0.116283877635892*(CMF-0.45547)+0.704856846608
@@ -81,12 +70,14 @@ def CRF_estimate(Mpl,CMF,Rpl):     #Estimate core radius fraction from model res
     CRF=CR_re/Rpl
     return CRF
 
-def CMB_T(Rp,Tp): #Estimate core-mantle boundary temperature, per arxiv.org/abs/1905.06530
+def CMB_T(Rp,Tp):
+    #Estimate core-mantle boundary temperature, per arxiv.org/abs/1905.06530
     R=Rp/Re #below fits are in Re ; results are in K
     Tcmb = 4180*R - 2764*R**2 + 1219*R**3 + ((Tp - 1600)*(0.82 + R**1.81))
     return Tcmb
 
-def CMB_P(Rp): #Estimate core-mantle boundary pressure, per arxiv.org/abs/1905.06530
+def CMB_P(Rp):
+    #Estimate core-mantle boundary pressure, per arxiv.org/abs/1905.06530
     Rpl=Rp/Re #below fits are in Re ; results are in GPa
     Pcmb = 262 * Rpl - 550*Rpl**2 + 432*Rpl**3
     return Pcmb
@@ -119,7 +110,7 @@ def sample_radii(M):
         print(str(Pf(cmf)),'\t',str(Pf(reasonable_radius(M,cmf))))
     return
 
-def build(planet): #Mpl,Rpl,Tp0):
+def build(planet): 
     # derives planet properties: Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
     if planet['Rpl']>1.50001:
         print('Oops! At',Rpl,'earth radii, your planet isn\'t likely to be rocky.')
@@ -201,7 +192,7 @@ def thermals_at_P_ave(composition,P):
     nTs=len(T_P[:])
     thermals=np.zeros((nTs,4))
     thermals[:,0]=T_P
-    thermals[:,3]=5.0
+    thermals[:,3]=average_property(composition, 'k', 5.0)
 
     fgridstandard=open(gridstandard,'r')
     Ps=fgridstandard.readline().split(',')[lP_index:uP_index]
@@ -247,7 +238,8 @@ def Tdep_thermals(thermals,Tp):
     k=thermals[lT_index,3]*lo_wt + thermals[lT_index+1,3]*hi_wt
     return alpha,Cp,k
 
-def representative_mantle(Rp,Rc): #for calculating mantle's volume-averaged properties
+def representative_mantle(Rp,Rc):
+    #for calculating mantle's volume-averaged properties
     nR=100
     SAtot=0.0
     nSA=0
@@ -261,3 +253,22 @@ def representative_mantle(Rp,Rc): #for calculating mantle's volume-averaged prop
     fracdepth=(Rp-rrep)/(Rp-Rc)
     frac_height=1-fracdepth
     return frac_height
+
+def average_property(composition, property, defaultval):
+    # Linear average of species properties by weight in composition.
+    # If a species doesn't have [property] in minDB.py,
+    # this assumes it has defaultval.
+    subtotal = 0.0
+    wtused = 0.0
+
+    for i in composition:
+        mineral=i #for clarity
+        wt=composition[i]
+        try:
+            part=mins[mineral][property]
+            #wtused=wtused+wt
+        except:
+            part=defaultval
+        subtotal=subtotal+(part*wt)
+    #subtotal=Ev_tot/wtused
+    return subtotal

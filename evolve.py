@@ -26,7 +26,7 @@ radio = np.array([
 	[0.15053, 0.28976, 0.10767, 0.45204], #'wtpercent' early earth values, i.e. 4.55Ga - normalized to total U
 	[0.155, 0.985, 0.0495, 0.555]]) #decay constants in 1/Ga
 
-def produce_heat(planet,t): #Mp,Mc,Qpl,t):
+def produce_heat(planet,t):
 	Q0=(Qe*planet['Qpl'])*(planet['Mp']-planet['Mc'])       #initial radionuclide abundance total - w/kg versus Earth, times #kg mantle
 	Ht=[0.0,0.0,0.0,0.0]
 	for i in range(4):
@@ -70,12 +70,12 @@ def lose_heat(Mpl,CMF,Rpl,CRF,mineral,Tp,Ra):
 	Fman=Sa*(c1*k*(Tp-Ts)/d)*(theta**(-4./3.))*(Ra**(1./3.))
 	return Fman
 
-def flux_heat(planet,k,Tp,Ra):# Sa,c1,k,Tp,d,Ra,Ev):
+def flux_heat(planet,k,Tp,Ra):
 	theta=frank_kamenetskii(planet['Ev'],Tp)
 	Fman=planet['Sa']*(planet['c1']*k*(Tp-Ts)/planet['d'])*(theta**(-4./3.))*(Ra**(1./3.))
 	return Fman
 
-def show_structure(Rp,CRF):   #beta
+def show_structure(Rp,CRF):
     from mpl_toolkits.mplot3d import Axes3D
     plt.rcParams['figure.dpi'] = 100
     fig = plt.figure()

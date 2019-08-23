@@ -14,7 +14,8 @@ R = 8.3145          #Ideal gas constant
 Re = 6.371e6        #Earth radius in meters
 separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
 
-def weights_by_volume(file,startline): #returns: radius of each shell, relative contribution of each depth
+def weights_by_volume(file,startline):
+	#returns: radius of each shell, relative contribution of each depth
 	f=open(file,'r')					# vs the one following it, relative contribution of each shell to volume 
 	lines=f.readlines()[startline:]
 	f.close()
@@ -42,7 +43,8 @@ def weights_by_volume(file,startline): #returns: radius of each shell, relative 
 	vol_weights=np.asarray(weight_local)
 	return radii, vol_weights, fraction_of_volume
 
-def weights_by_mass(file,startline): #returns: mass of each shell, relative contribution of each depth to mass, relative contribution of each shell to mass
+def weights_by_mass(file,startline):
+	#returns: mass of each shell, relative contribution of each depth to mass, relative contribution of each shell to mass
 	radii, weight_local, weight_total = weights_by_volume(file,startline)
 	Vtot=(4./3.)*np.pi*(max(radii)**3 - min(radii)**3)
 	f=open(file,'r')	
