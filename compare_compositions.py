@@ -38,7 +38,7 @@ files=read_cumulative.planets_from_summary()
 Hts=[]
 
 print("FINAL VALUES:")
-print('file\t\t\t alpha \t\tCp \ttemp(K) \tRayleigh \tHeatLoss(W) \tUreyRatio')
+print('file\t\t\t alpha \t\tCp \ttemp(K) \tRayleigh \tHeatLoss(W) \tUreyRatio \tWaterContent')
 
 for file in files:
 
@@ -105,7 +105,7 @@ for file in files:
         Tp=Tp+dTp
         t=t+dt
 
-    print(file, '\t', Pe(alpha), Pf(cp), '\t', Pf(Tp), '\t', Pe(Ra), '\t',  Pe(loss),  '\t', Pf(production/loss))
+    print(file, '\t', Pe(alpha), Pf(cp), '\t', Pf(Tp), '\t', Pe(Ra), '\t',  Pe(loss),  '\t', Pf(production/loss), '\t', Pe(get.average_property(composition, 'water', 0.0)))
 
     #Evolution=np.asarray(Hts)
 
