@@ -9,11 +9,15 @@
 # akimotoite, orthopyroxene, clinopyroxene, perovskite, and post-perovskite. Stixrude database abbreviations
 # for these additional phases are in comments next to their Mg analogs.
 
-#Current thermal conductivities from: DOI:10.1029/JB076i005p01278
-#Prospective additions: SI from http://www.pnas.org/cgi/doi/10.1073/pnas.1110594108 
+#Unless otherwise indicated, thermal conductivities from: DOI:10.1029/JB076i005p01278
 
-
-
+#Prospective additions
+#SI from http://www.pnas.org/cgi/doi/10.1073/pnas.1110594108 
+#For wad/ring/o: P/T expression for thermal conductivity on page 10 of DOI:10.1016/j.pepi.2004.03.005
+#For periclase: thermal conductivity as a function of P/T - DOI: 10.1073/pnas.0907194107 
+#For O (Fo93): 10.1016/j.pepi.2003.10.010
+#For Mg perovskite: P/T/XFe dependencies in follow-up studies from 2017AGUFMMR31A0426T
+#Also for perovskite: XFe dependencies in: 10.1073/pnas.1718557115 
 minerals = {}
 minerals['C2/c'] = {}
 minerals['Wus'] = {}
@@ -42,8 +46,9 @@ alphadefault=1.0e-6
 Ev_default=300.0e3
 
 minerals['C2/c']['name'] ='C2/c'
-minerals['C2/c']['stix'] ='hpcEn'
+minerals['C2/c']['stix'] ='hpcEn' #More info at DOI: 10.2138/am-2019-6740
 minerals['C2/c']['k'] = kdefault #NEED
+minerals['C2/c']['water'] = 714.0/(1e6) #DOI: 10.1007/s00410-002-0365-6
 
 minerals['Wus']['name'] ='Periclase'
 minerals['Wus']['stix'] ='Per'
@@ -83,7 +88,7 @@ minerals['Opx']['name'] ='Orthopyroxene/En'
 minerals['Opx']['stix'] ='En' #others: MgTs, oDi. k0,k1,k2,k3=1332.63600,-9604.704,-18164480.000,2233202400.
 minerals['Opx']['k'] = 4.3932 #NC sample from Horai 1971 p.1988
 minerals['Opx']['Ev'] = 420.0e3 #DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
-minerals['Opx']['water'] = 0.15/100.
+minerals['Opx']['water'] = 0.15/100.  #pure enstatite is lower (199e-6) in DOI: 10.1016/j.epsl.2005.04.022 
 
 minerals['Cpx']['name'] ='Clinopyroxene/cEn'
 minerals['Cpx']['stix'] ='cEn' #others: CaTs, Di
@@ -94,10 +99,11 @@ minerals['Cpx']['water'] = 0.08/100.
 minerals['Aki']['name'] ='Akimotoite'
 minerals['Aki']['stix'] ='MgAki' #others: AlAki
 minerals['Aki']['k'] = kdefault #NEED
+minerals['Aki']['water'] = 443.0/(1e6) #DOI: 10.1016/S0012-821X(00)00244-2
 
 minerals['Gt_maj']['name'] ='Majoritic Garnet'
 minerals['Gt_maj']['stix'] ='Maj'
-minerals['Gt_maj']['k'] = 3.175656 #Pyrope value, not Maj, from Horai et al
+minerals['Gt_maj']['k'] = 9.77 #This is room temp value though... DOI: 10.1016/S0012-821X(03)00630-7
 minerals['Gt_maj']['water'] = 0.0675/100.
 
 minerals['Ppv']['name'] ='Post-perovskite'
@@ -111,7 +117,8 @@ minerals['CF']['k'] = kdefault #NEED
 
 minerals['st']['name'] ='Stishovite'
 minerals['st']['stix'] ='Sti'
-minerals['st']['k'] = kdefault #NEED
+minerals['st']['k'] = 7.82 #Median of mantle geotherm values reported in DOI: 10.1029/2011JB009119
+minerals['st']['water'] = 100./(1.0e6) #DOI: 10.1029/2002JB002053
 
 minerals['q']['name'] ='Quartz'
 minerals['q']['stix'] ='Qz'
@@ -133,6 +140,7 @@ minerals['coe']['k'] = kdefault #NEED
 minerals['ky']['name'] ='Kyanite'
 minerals['ky']['stix'] ='Ky'
 minerals['ky']['k'] = 14.154472
+minerals['ky']['water'] = 100./(1.0e6) #DOI: 10.2138/rmg.2006.62.8
 
 minerals['seif']['name'] ='Seifertite'
 minerals['seif']['stix'] ='Seif'
