@@ -19,9 +19,11 @@
 # For Mg perovskite: P/T/XFe dependencies in follow-up studies from 2017AGUFMMR31A0426T
 # Also for perovskite: XFe dependencies in: DOI: 10.1073/pnas.1718557115
 # For SiO2 phases, thermal conductivity (lattice portion): DOI: 10.1103/PhysRevB.96.195201
+# Anorthite rheology:  DOI: 10.1029/2000JB900223
 kdefault = 5.00
 alphadefault = 1.0E-6
 Ev_default = 300.0e3
+grainsize=15. #microns
 
 minerals = {}
 minerals['C2/c'] = {}
@@ -65,31 +67,34 @@ minerals['Pv']['water'] = 0.001E-2
 minerals['an']['name'] = 'Anorthite'
 minerals['an']['stix'] = 'An'
 minerals['an']['k'] = 1.71544
-minerals['an']['Ev'] = 648.0e3  # DOI: 10.1029/2000JB900223
+minerals['an']['Ev'] = 467.0e3  # 10.1029/2000JB900223
 minerals['an']['water'] = 0.051E-2
 
 minerals['O']['name'] = 'Forsterite'
 minerals['O']['stix'] = 'Fo'
 minerals['O']['k'] = 5.10448  # 5.858
-minerals['O']['Ev'] = 261.0e3  # DOI: 10.1029/2007JB005100
+minerals['O']['Ev'] = 300.0e3  # Possibly replace, as this is mantle olivine; DOI: 10.1029/2007JB005100
+minerals['O']['visc0'] = 4.0e10 # DOI: 10.1002/jgrb.50284, Mantle olivine: 10**5.25 DOI: 10.1029/2007JB005100
 minerals['O']['water'] = 0.12E-2
 
 minerals['Wad']['name'] = 'Mg-Wadsleyite'
 minerals['Wad']['stix'] = 'MgWds'
 minerals['Wad']['k'] = kdefault  # NEED
-minerals['Wad']['Ev'] = 261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+minerals['Wad']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+minerals['Wad']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
 minerals['Wad']['water'] = 2.4E-2
 
 minerals['Ring']['name'] = 'Ringwoodite'
 minerals['Ring']['stix'] = 'MgRwd'
 minerals['Ring']['k'] = kdefault  # NEED
-minerals['Ring']['Ev'] = 261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+minerals['Ring']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+minerals['Ring']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
 minerals['Ring']['water'] = 2.5E-2
 
 minerals['Opx']['name'] = 'Orthopyroxene/En'
 minerals['Opx']['stix'] = 'En'  # others: MgTs, oDi.
 minerals['Opx']['k'] = 4.3932  # NC sample from Horai 1971 p.1988
-minerals['Opx']['Ev'] = 420.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
+minerals['Opx']['Ev'] = 360.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
 minerals['Opx']['water'] = 0.15E-2  # pure enstatite is lower (199E-6) in DOI: 10.1016/j.epsl.2005.04.022
 
 minerals['Cpx']['name'] = 'Clinopyroxene/cEn'

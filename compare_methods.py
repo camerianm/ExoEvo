@@ -9,8 +9,8 @@ import evolve
 import fromexo
 import getall as get
 import printall as prnt
-from printall import Pe as Pe #print scientific notation, 4 decimal
-from printall import Pf as Pf #print float, 4 decimal
+from printall import Pe #print scientific notation, 4 decimal
+from printall import Pf #print float, 4 decimal
 from mineralDB import minerals as minerals 
 
 # Although you can design your own composition, let's start with a sample planet from ExoPlex.

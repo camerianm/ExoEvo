@@ -1,18 +1,16 @@
 # A module to ease printing
 # Recommended import style:
 #   import printall as prnt
-#   from printall import Pe as Pe
-#   from printall import Pf as Pf
+#   from printall import Pe
+#   from printall import Pf
 
 def Pe(n):
-	a=(format(n, '.4e'))
-	return a #format(n, '.4e')
-
+	a = (format(n, '.4e'))
+	return a  # format(n, '.4e')
 	
 def Pf(n):
-	a=(format(n, '.4f'))
-	return a #float(format(n, '.4f'))
-
+	a = (format(n, '.4f'))
+	return a  # float(format(n, '.4f'))
 
 def unchanging(params, composition):
     print()
@@ -42,8 +40,8 @@ def unchanging(params, composition):
     
     print('Mantle composition:')
     for i in composition:
-        if composition[i]>0:
-            print(i, '\t', Pf(100*composition[i]), '%')
+        if composition[i] > 0:
+            print(i, '\t', Pf(100 * composition[i]), '%')
     print()
     print()
     return
@@ -53,21 +51,8 @@ def options(component):
     
     if component == "options":
         print('Options for option() function:')
-        print('* \'minerals\'')
         print('* \'mode\'')
-        
-    if component == "mineral":
-        print('Options for mineral variable:')
-        print('* \'forsterite\'')
-        print('* \'fayalite\'')
-        print('* \'orthoenstatite\'')
-        print('* \'clinoenstatite\'')
-        print('* \'periclase\'')
-        print('* \'corundum\'')
-        print('* \'spinel\'')
-        print('* \'diopside\'')
-        print('* \'diamond\'')
-        print('* \'ca-al pyroxene\'')
+        print('* \'outputs\'')
 
     if component == "mode":
         print('Options for mode variable:')

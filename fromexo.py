@@ -2,11 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure, show
 import getall as get
-#import scipy as sp
-#import sys
-#import os
-#import shutil
-
 
 Grav = 6.67408e-11  #Gravitational constant
 Me = 5.97e24        #Earth mass in kg
