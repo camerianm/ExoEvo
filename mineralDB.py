@@ -51,7 +51,7 @@ minerals['Sp'] = {}
 minerals['C2/c']['name'] = 'C2/c'
 minerals['C2/c']['stix'] = 'hpcEn'  # More info at DOI: 10.2138/am-2019-6740
 minerals['C2/c']['k'] = kdefault  # NEED
-minerals['C2/c']['Ev'] = 560.0e3  # treats same as cpx, as often done for O/Ring/Wad. DOI: 10.1029/2001JB000333
+#minerals['C2/c']['Ev'] = 560.0e3  # treats same as cpx, as often done for O/Ring/Wad. DOI: 10.1029/2001JB000333
 minerals['C2/c']['water'] = 714.0E-6  # DOI: 10.1007/s00410-002-0365-6
 
 minerals['Wus']['name'] = 'Periclase'
@@ -61,13 +61,15 @@ minerals['Wus']['water'] = 0.0075E-2
 
 minerals['Pv']['name'] = 'Mg-Perovskite'
 minerals['Pv']['stix'] = 'MgPrv'  # others: AlPrv, ca-pv included
-minerals['Pv']['k'] = kdefault  # NEED
+minerals['Pv']['k'] = 10.7  # DOI:10.1038/s41598-017-05523-6 - apparently increases by 5x from 0-100GPa
+#minerals['Pv']['Ev'] = 370.0e3  # DOI: 10.1016/j.icarus.2013.03.013
+#minerals['Pv']['visc0'] = 2.5e11  # DOI: 10.1016/j.icarus.2013.03.013, normalized to form in Foley & Smye 2017, assuming Tref ~1600
 minerals['Pv']['water'] = 0.001E-2
 
 minerals['an']['name'] = 'Anorthite'
 minerals['an']['stix'] = 'An'
 minerals['an']['k'] = 1.71544
-minerals['an']['Ev'] = 467.0e3  # 10.1029/2000JB900223
+#minerals['an']['Ev'] = 467.0e3  # 10.1029/2000JB900223
 minerals['an']['water'] = 0.051E-2
 
 minerals['O']['name'] = 'Forsterite'
@@ -86,7 +88,7 @@ minerals['Wad']['water'] = 2.4E-2
 
 minerals['Ring']['name'] = 'Ringwoodite'
 minerals['Ring']['stix'] = 'MgRwd'
-minerals['Ring']['k'] = kdefault  # NEED
+minerals['Ring']['k'] = 10.0   # DOI: 10.1016/S0012-821X(03)00630-7
 minerals['Ring']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
 minerals['Ring']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
 minerals['Ring']['water'] = 2.5E-2
@@ -94,13 +96,13 @@ minerals['Ring']['water'] = 2.5E-2
 minerals['Opx']['name'] = 'Orthopyroxene/En'
 minerals['Opx']['stix'] = 'En'  # others: MgTs, oDi.
 minerals['Opx']['k'] = 4.3932  # NC sample from Horai 1971 p.1988
-minerals['Opx']['Ev'] = 360.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
+#minerals['Opx']['Ev'] = 360.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
 minerals['Opx']['water'] = 0.15E-2  # pure enstatite is lower (199E-6) in DOI: 10.1016/j.epsl.2005.04.022
 
 minerals['Cpx']['name'] = 'Clinopyroxene/cEn'
 minerals['Cpx']['stix'] = 'cEn'  # others: CaTs, Di
-minerals['Cpx']['k'] = kdefault  # NEED
-minerals['Cpx']['Ev'] = 560.0e3  # DOI: 10.1029/2001JB000333
+minerals['Cpx']['k'] = 4.9  # DOI:10.1029/2005GC001053
+#minerals['Cpx']['Ev'] = 560.0e3  # DOI: 10.1029/2001JB000333
 minerals['Cpx']['water'] = 0.08E-2
 
 minerals['Aki']['name'] = 'Akimotoite'
@@ -129,7 +131,7 @@ minerals['st']['water'] = 100.E-6  # DOI: 10.1029/2002JB002053
 
 minerals['q']['name'] = 'Quartz'
 minerals['q']['stix'] = 'Qz'
-minerals['q']['k'] = 7.686008
+minerals['q']['k'] = 7.686008  # DOI: 10.1029/JB076i005p01278
 
 minerals['ca-pv']['name'] = 'Ca-perovskite'
 minerals['ca-pv']['stix'] = 'CaPrv'
@@ -146,7 +148,7 @@ minerals['coe']['k'] = 8.0  # 4GPa value from DOI: 10.1016/0031-9201(78)90036-5
 
 minerals['ky']['name'] = 'Kyanite'
 minerals['ky']['stix'] = 'Ky'
-minerals['ky']['k'] = 14.154472
+minerals['ky']['k'] = 14.154472  #DOI: 10.1016/0012-821X(69)90186-1
 minerals['ky']['water'] = 100.E-6  # DOI: 10.2138/rmg.2006.62.8
 
 minerals['seif']['name'] = 'Seifertite'
