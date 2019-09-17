@@ -78,8 +78,9 @@ def evolution_colorcoded(nparray, columnkeys, colorcolumn, colortype):
 			color_continuous_scale=px.colors.diverging.Spectral[::-1])
 		plot.show()
 	else:
+		df[colorcolumn] = df[colorcolumn].astype(str)
 		plot = px.scatter(df, x="time", y="temp", color=colorcolumn,
-        	colors=px.colors.qualitative.Safe[::-1])
+			color_discrete_sequence=px.colors.qualitative.Vivid)
 		plot.show()
 	return df
 
