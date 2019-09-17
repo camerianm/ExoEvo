@@ -46,11 +46,15 @@ def plot_heat(source,title):
 	maxy=max(production[:,1])+((max(production[:,1])-miny)*0.1)
 	plt.xlim(minx,maxx)
 	plt.ylim(miny,maxy)
+	plt.xlabel('Time, Ga')
+	plt.ylabel('Temperature, K')
 	plt.grid(which='both', linestyle='--')
 	plt.title(str(title))
 	fname = str(str(title).split(' ')) + '_temp_evolution.pdf'
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+	plt.savefig(fname)
 	plt.show()
+	return 0
 
 def frank_kamenetskii(Ev,Tp):
 	theta=Ev*(Tp-Ts)/(R*(Tp**2))
@@ -84,3 +88,30 @@ def evolution_colorcoded(nparray, columnkeys, colorcolumn, colortype):
 		plot.show()
 	return df
 
+
+def ThermEv(planet, thermals, method, Tp0, tmax):
+    Tp=Tp0
+    Ts=300.0
+    dt=0.01
+    Hts=[]             # A list of lists; column names are in get.keys['columns']
+    t=0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
+
+    while t <= tmax:
+
+        if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
+        if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
+        if method=='benchmark': alpha,cp,k,planet['pm']=3.7e-5,1250.,5.0,3340. #common benchmark values
+    
+        viscT=get.viscosity(planet,Tp)
+        Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
+
+        production=produce_heat(planet,t)
+        loss=flux_heat(planet,k,Tp,Ra)
+        dTp=(dt*get.seconds*(production-loss))/(cp*planet['pm']*planet['Vm']) #Potentially change to (cp*Mp)?
+        Hts.append([t,Tp,Ra,production,loss,production/loss,alpha,cp])
+
+        Tp=Tp+dTp
+        t=t+dt
+
+    Evolution=np.asarray(Hts)
+    return Evolution
