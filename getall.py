@@ -65,8 +65,12 @@ def TdepVisc(composition):
     Ev_default = mins['O']['Ev']
     visc0_default = mins['O']['visc0']
     
-    Ev_tot = average_property(composition, 'Ev', Ev_default)
-    visc0_tot = average_property(composition, 'visc0', visc0_default)
+    # Ev_tot = average_property(composition, 'Ev', Ev_default)
+    # visc0_tot = average_property(composition, 'visc0', visc0_default)
+    
+    # Update 10/1: Removing viscosity from consideration...
+    Ev_tot = Ev_default
+    visc0_tot = visc0_default
     c1_tot = c1_default
     return c1_tot,Ev_tot,visc0_tot
 

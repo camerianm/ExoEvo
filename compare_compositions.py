@@ -9,7 +9,6 @@ import time
 import evolve
 import fromexo
 import getall as get
-import read_cumulative
 import printall as prnt
 from printall import Pe  # print scientific notation, 4 decimal
 from printall import Pf  # print float, 4 decimal
@@ -17,9 +16,8 @@ from printall import Pf  # print float, 4 decimal
 # For plotting purposes:
 columnkeys = ['time', 'temp', 'rayleigh', 'production', 'loss', 'urey', 'Mg', 'Si', 'Ca', 'Al', 'MgSi', 'alpha', 'cp', 'Water']
 
-
 # USER INPUT VALUES
-method = 'dynamic'  # static or dynamic calculation of thermal parameters
+method = 'static'  # static or dynamic calculation of thermal parameters
 Pref = 70         # Reference pressure for Cp and alpha, GPa
 Ts = 300.0          # surface temperature, K
 Tp0 = 2000          # starting mantle potential temperature in K        Earth = 2000.0 (initial), 1600 (present)
@@ -29,13 +27,13 @@ output_file='compare_compositions_results.csv'
 output_file_2='bulk_elemental_fraction.csv'
 
 # Import planet compositions from summary file.
-files = read_cumulative.planets_from_summary()
+files = fromexo.planets_from_summary()
 
 #Establish files which will hold final values
 out = open(output_file, 'w+')
 out.write('file,Mg/Si,Ca/Si,Al/Si,alpha,Cp,k,temp(K),Rayleigh,HeatLoss(W),UreyRatio,WaterFrac\n')
 out2 = open(output_file_2, 'w+')
-out2.write('f_Mg,f_Si,f_Ca,f_Al,tempK,Water\n')
+out2.write('f_Mg,f_Si,f_Ca,f_Al,alpha,cp,k,tempK,Water\n')
 
 Hts = []  # A list of lists; column names are in get.keys['columns']
 sep = ','
@@ -86,7 +84,10 @@ for file in files:
     while t <= tmax:
 
         if method == 'dynamic': alpha, cp, k = get.Tdep_thermals(thermals, Tp)
-        if method == 'static': alpha, cp, k = get.Tdep_thermals(thermals, 1625)
+        if method == 'static':
+            alpha = files[file]['alpha']
+            cp = files[file]['Cp']
+            k = files[file]['k']
 
         viscT = get.viscosity(planet, Tp)
         Ra = get.rayleigh(planet, Tp, Ts, viscT, alpha, cp, k)
@@ -108,7 +109,7 @@ for file in files:
     out.write(sep.join(line))
     out.write('\n')
 
-    line2 = (Pf(Mg), Pf(Si), Pf(Ca), Pf(Al), Pf(Tp), Pe(Water))
+    line2 = (Pf(Mg), Pf(Si), Pf(Ca), Pf(Al), Pe(alpha), Pf(cp), Pf(k), Pf(Tp), Pe(Water))
     out2.write(sep.join(line2))
     out2.write('\n')
 

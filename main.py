@@ -29,7 +29,7 @@ Tp0=1800.           # starting mantle potential temperature in K        Earth = 
 Pref=5.0           # reference pressure for thermal calculations, in GPa. If Pref is less than 4, Pref is set to half the CMB pressure.
 tmax=4.0           # ending time, in Ga - how long to cool the planet         Earth = 4.55
 method='dynamic'    # 'static', 'dynamic', or 'benchmark' thermal parameters
-my_composition = {'Opx': 1.0}
+my_composition = {'O': 1.0}
 '''
 my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
                   'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \
