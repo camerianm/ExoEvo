@@ -5,6 +5,11 @@ import getall as get
 import plotly.express as px
 import pandas as pd
 
+from constants import *
+from constants import STO
+beta = STO['beta']
+Ts=273.0
+
 Me = 5.97e24        # Earth mass in kg
 Qe = 1.055e-11 		# If bulk silicate earth Urey ratio (BSE) is assumed, crust is included. 16TW currently; ~80TW past; core mass excluded; Qe=2.00e-11
 				 	# If not, Qe=1.055e-11. Estimated from convective Urey Ratio for present day, multiplied by 5 to simulate starting Earth values
@@ -17,21 +22,28 @@ Qe = 1.055e-11 		# If bulk silicate earth Urey ratio (BSE) is assumed, crust is 
 					#    Mcrust=0.006Mmantle ; Mcore=0.33*Mearth.
 R = 8.3145          # Ideal gas constant
 Re = 6.371e6        # Earth radius in meters
-Ts = 300.0
+#Ts = 300.0
 
+# Qe = STO['Qe']
+# Ts = STO['Ts']
 
 radio = np.array([
 	# '238U','235U','232Th','40K'; 
 	[1.00, 1.00, 1.00, 1.00],  # 'rel_amt':relative to Earth's values
-	[0.15053, 0.28976, 0.10767, 0.45204], # 'wtpercent' early earth values, i.e. 4.55Ga - normalized to total U
+	[0.15363, 0.2837, 0.11046, 0.45221], # at 4.50Ga
+	#[0.15053, 0.28976, 0.10767, 0.45204], # 'wtpercent' early earth values, i.e. 4.55Ga - normalized to total U
 	[0.155, 0.985, 0.0495, 0.555]])  #decay constants in 1/Ga
 
 def produce_heat(planet,t):
-	Q0=(Qe*planet['Qpl']) * (planet['Mp'] - planet['Mc'])       # initial radionuclide abundance total - w/kg versus Earth, times #kg mantle
-	Ht=[0.0,0.0,0.0,0.0]
-	for i in range(4):
-		Ht[i]=radio[0,i] * radio[1,i]*np.exp(radio[2,i] * -t)
-	heat=Q0*sum(Ht)
+	if 'decay' in planet.keys():
+		heat = planet['Qe'] * np.exp(-1*planet['decay']*t)
+	else:
+		Q0=(Qe*planet['Qpl']) * (planet['Mp'] - planet['Mc'])       # initial radionuclide abundance total - w/kg versus Earth, times #kg mantle
+		Ht=[0.0,0.0,0.0,0.0]
+		for i in range(4):
+			Ht[i]=radio[0,i] * radio[1,i]*np.exp(radio[2,i] * -t)
+		heat=Q0*sum(Ht)
+
 	return heat
 
 def plot_heat(source,title):
@@ -66,24 +78,26 @@ def lose_heat(Mpl,CMF,Rpl,CRF,mineral,Tp,Ra):
 	alpha,cp,k=get.thermals(mineral,Tp)
 	c1,Ev,visc0=get.TdepVisc(mineral)
 	theta=frank_kamenetskii(Ev,Tp)
-	Fman=Sa*(c1*k*(Tp-Ts)/d)*(theta**(-4./3.))*(Ra**(1./3.))
+	Fman=Sa*(c1*k*(Tp-Ts)/d)*(theta**(-(1+beta)))*(Ra**(beta))
 	return Fman
 
 def flux_heat(planet,k,Tp,Ra):
+	#if 'Ra_cr' in planet.keys():
+	#	Ra = Ra/planet['Ra_cr']
 	theta=frank_kamenetskii(planet['Ev'],Tp)
-	Fman=planet['Sa']*(planet['c1']*k*(Tp-Ts)/planet['d'])*(theta**(-4./3.))*(Ra**(1./3.))
+	Fman=planet['Sa']*(planet['c1']*k*(Tp-Ts)/planet['d'])*(theta**(-(1+beta)))*(Ra**(beta))
 	return Fman
 
 def evolution_colorcoded(nparray, columnkeys, colorcolumn, colortype):
 	# Input: nparray = Numpy array; columnkeys = list of strings; colorcolumn = col name; colortype = continuous or discrete
 	df = pd.DataFrame(data=nparray, columns=columnkeys)
 	if colortype == "continuous":
-		plot = px.scatter(df, x="time", y="temp", color=colorcolumn,
+		plot = px.scatter(df, x="time", y="temp", color=colorcolumn, template = 'ggplot2+presentation',
 			color_continuous_scale=px.colors.diverging.Spectral[::-1])
 		plot.show()
 	else:
 		df[colorcolumn] = df[colorcolumn].astype(str)
-		plot = px.scatter(df, x="time", y="temp", color=colorcolumn,
+		plot = px.line(df, x="time", y="temp", color=colorcolumn, template = 'ggplot2+presentation',
 			color_discrete_sequence=px.colors.qualitative.Vivid)
 		plot.show()
 	return df
@@ -91,7 +105,7 @@ def evolution_colorcoded(nparray, columnkeys, colorcolumn, colortype):
 
 def ThermEv(planet, thermals, method, Tp0, tmax):
     Tp=Tp0
-    Ts=300.0
+    Ts=273.
     dt=0.01
     Hts=[]             # A list of lists; column names are in get.keys['columns']
     t=0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
@@ -100,7 +114,7 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
 
         if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
         if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
-        if method=='benchmark': alpha,cp,k,planet['pm']=3.7e-5,1250.,5.0,3340. #common benchmark values
+        if method=='benchmark': alpha,cp,k,planet['pm']=STO['alpha'], STO['Cp'], STO['k'], STO['pm'] #3.7e-5,1250.,5.0,3340. #common benchmark values
     
         viscT=get.viscosity(planet,Tp)
         Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
@@ -115,3 +129,11 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
 
     Evolution=np.asarray(Hts)
     return Evolution
+
+
+
+low_mg = {'C2/c':0.02553006, 'Wus':0.000000, 'Pv':0.40009268, 'an':0.00, \
+               'O':0.00000, 'Wad':0.00000, 'Ring':0.00000, 'Opx':0.06821423, \
+               'Cpx':0.00715906, 'Aki':4.31e-05, 'Gt_maj':0.06264212, 'Ppv':0.05175689, \
+               'CF':0.00, 'st':0.01990724, 'q':0.00125053, 'ca-pv':0.02987515, \
+               'cfs':0.00, 'coe':0.00165384, 'ky':0.00, 'seif':0.00154011}

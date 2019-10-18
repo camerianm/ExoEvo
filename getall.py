@@ -6,7 +6,12 @@ import numpy as np
 from mineralDB import minerals as mins
 from printall import Pe # print scientific notation, 4 decimal places
 from printall import Pf # print float, 4 decimal places
+from constants import *
 
+alphadefault = 1.0e-5
+kdefault = 5.0
+Cpdefault = 1250.0
+'''
 # Constants
 Grav = 6.67408e-11  #Gravitational constant
 Me = 5.97e24        # Earth mass in kg
@@ -15,11 +20,9 @@ Re = 6.371e6        # Earth radius in meters
 seconds = 3.1536e16    # billion years to seconds conversion
 error_tolerance = 1.0e-6
 sep = ','
-alphadefault = 1.0e-5
-kdefault = 5.0
-Cpdefault = 1250.0
-verbose = "false"  # if "true": all print statements activated
 
+verbose = "false"  # if "true": all print statements activated
+'''
 def adds_up(composition):
     # Purpose: weighted averaging schemes are vital in this code. adds_up protects against user error
     #    by checking that the sum of all weights is 1. This eases iterating over compositional spaces.

@@ -9,6 +9,9 @@ import printall as prnt
 from printall import Pe #print scientific notation, 4 decimal
 from printall import Pf #print float, 4 decimal
 from mineralDB import minerals
+from constants import STO
+
+#import plotly.express as px
 
 ########################################################################
 # User input values:
@@ -25,11 +28,12 @@ startline=1000 #This is where the core stops and the mantle begins, in that file
 Mpl=1.0             # Planet mass in Me - usually between 0.5 and 5. ignored if ExoPlex = 'TRUE' Earth = 1.0
 Rpl=1.0             # Relative heat production per kg mantle, vs Earth  Earth = 1.0
 Qpl=1.0             # Planet's starting radiogenic abundance, per kg mantle
-Tp0=1800.           # starting mantle potential temperature in K        Earth = 1800.0 (initial), 1650 (present)
+Tp0=2023.           # starting mantle potential temperature in K        Earth = 1800.0 (initial), 1650 (present)
 Pref=5.0           # reference pressure for thermal calculations, in GPa. If Pref is less than 4, Pref is set to half the CMB pressure.
-tmax=4.0           # ending time, in Ga - how long to cool the planet         Earth = 4.55
-method='dynamic'    # 'static', 'dynamic', or 'benchmark' thermal parameters
+tmax=4.5           # ending time, in Ga - how long to cool the planet         Earth = 4.55
+method='benchmark'    # 'static', 'dynamic', or 'benchmark' thermal parameters
 my_composition = {'O': 1.0}
+
 '''
 my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
                   'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \
@@ -43,6 +47,7 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 
 columnkeys = ['time', 'temp', 'rayleigh', 'production', 'loss', 'urey', 'alpha', 'cp']
 planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref}
+if method == 'benchmark': planet.update(STO)
 
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
 if ExoPlex == 'TRUE':
@@ -62,9 +67,19 @@ composition=get.adds_up(composition)
 # Build your mantle and acquire its unchanging material properties.
 planet['c1'],planet['Ev'],planet['visc0']=get.TdepVisc(composition)
 thermals=get.thermals_at_P_ave(composition, Pref)
-prnt.unchanging(planet, composition)
+if method == 'benchmark':
+    planet.update(STO)
 
+for i in sorted(planet.keys()):
+    print(i, planet[i])
+#prnt.unchanging(planet, composition)
 # Evolve your planet over time.
-Evolution = evolve.ThermEv(planet, thermals, method, Tp0, tmax)
-evolve.plot_heat(Evolution,method)
-# evolve.evolution_colorcoded(Evolution, columnkeys, 'cp', 'continuous')
+Evolution = evolve.ThermEv(planet, thermals, method, planet['Tp0'], tmax)
+#evolve.plot_heat(Evolution,method)
+evolve.evolution_colorcoded(Evolution, columnkeys, 'cp', 'discrete')
+import pandas as pd
+ev = pd.DataFrame(data=Evolution, columns=columnkeys)
+ev.to_csv('outputs_from_benchmark_visc05815e4.csv')
+
+for i in sorted(planet.keys()):
+    print(i, '\t', planet[i])
