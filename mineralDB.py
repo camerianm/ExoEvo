@@ -82,27 +82,27 @@ minerals['O']['water'] = 0.12E-2
 minerals['Wad']['name'] = 'Mg-Wadsleyite'
 minerals['Wad']['stix'] = 'MgWds'
 minerals['Wad']['k'] = kdefault  # NEED
-minerals['Wad']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
-minerals['Wad']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
+# minerals['Wad']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+# minerals['Wad']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
 minerals['Wad']['water'] = 2.4E-2
 
 minerals['Ring']['name'] = 'Ringwoodite'
 minerals['Ring']['stix'] = 'MgRwd'
 minerals['Ring']['k'] = 10.0   # DOI: 10.1016/S0012-821X(03)00630-7
-minerals['Ring']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
-minerals['Ring']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
+# minerals['Ring']['Ev'] = minerals['O']['Ev'] #261.0e3  # O/Wad/Ring treated as same; DOI: 10.1029/2007JB005100
+# minerals['Ring']['visc0'] = minerals['O']['visc0']  # DOI: 10.1029/2007JB005100
 minerals['Ring']['water'] = 2.5E-2
 
 minerals['Opx']['name'] = 'Orthopyroxene/En'
 minerals['Opx']['stix'] = 'En'  # others: MgTs, oDi.
 minerals['Opx']['k'] = 4.3932  # NC sample from Horai 1971 p.1988
-#minerals['Opx']['Ev'] = 360.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
+# minerals['Opx']['Ev'] = 360.0e3  # DOI: 10.1002/jgrb.50284  Alt DOI: 10.1002/2017JB014400
 minerals['Opx']['water'] = 0.15E-2  # pure enstatite is lower (199E-6) in DOI: 10.1016/j.epsl.2005.04.022
 
 minerals['Cpx']['name'] = 'Clinopyroxene/cEn'
 minerals['Cpx']['stix'] = 'cEn'  # others: CaTs, Di
 minerals['Cpx']['k'] = 4.9  # DOI:10.1029/2005GC001053
-#minerals['Cpx']['Ev'] = 560.0e3  # DOI: 10.1029/2001JB000333
+# minerals['Cpx']['Ev'] = 560.0e3  # DOI: 10.1029/2001JB000333
 minerals['Cpx']['water'] = 0.08E-2
 
 minerals['Aki']['name'] = 'Akimotoite'
