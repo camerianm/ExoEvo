@@ -24,8 +24,8 @@ R = 8.3145          # Ideal gas constant
 Re = 6.371e6        # Earth radius in meters
 #Ts = 300.0
 
-# Qe = STO['Qe']
-# Ts = STO['Ts']
+from printall import Pe
+from printall import Pf
 
 radio = np.array([
 	# '238U','235U','232Th','40K'; 
@@ -48,8 +48,8 @@ def produce_heat(planet,t):
 
 def plot_heat(source,title):
 	plt.rcParams['figure.dpi'] = 150
-	fig = figure(1)
-	ax = fig.add_subplot(211, autoscale_on=True)
+	fig = figure(1, figsize=(5,4))
+	ax = fig.add_subplot(111, autoscale_on=False)
 	production=source
 	ax.scatter(production[:,0],production[:,1],c='blue',alpha=0.2,s=0.5)
 	minx=min(production[:,0])
@@ -60,7 +60,6 @@ def plot_heat(source,title):
 	plt.ylim(miny,maxy)
 	plt.xlabel('Time, Ga')
 	plt.ylabel('Temperature, K')
-	plt.grid(which='both', linestyle='--')
 	plt.title(str(title))
 	fname = str(str(title).split(' ')) + '_temp_evolution.pdf'
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
@@ -82,8 +81,10 @@ def lose_heat(Mpl,CMF,Rpl,CRF,mineral,Tp,Ra):
 	return Fman
 
 def flux_heat(planet,k,Tp,Ra):
-	#if 'Ra_cr' in planet.keys():
-	#	Ra = Ra/planet['Ra_cr']
+	try:
+		beta=planet['beta']
+	except:
+		beta=1./3.
 	theta=frank_kamenetskii(planet['Ev'],Tp)
 	Fman=planet['Sa']*(planet['c1']*k*(Tp-Ts)/planet['d'])*(theta**(-(1+beta)))*(Ra**(beta))
 	return Fman
@@ -92,16 +93,24 @@ def evolution_colorcoded(nparray, columnkeys, colorcolumn, colortype):
 	# Input: nparray = Numpy array; columnkeys = list of strings; colorcolumn = col name; colortype = continuous or discrete
 	df = pd.DataFrame(data=nparray, columns=columnkeys)
 	if colortype == "continuous":
-		plot = px.scatter(df, x="time", y="temp", color=colorcolumn, template = 'ggplot2+presentation',
+		plot = px.scatter(df, x="time", y="temp", color=colorcolumn, template = 'plotly_white+presentation',
 			color_continuous_scale=px.colors.diverging.Spectral[::-1])
-		plot.show()
+		plot.layout.xaxis.title.text='Time, Ga'
+		plot.layout.yaxis.title.text='Temp, K'
 	else:
 		df[colorcolumn] = df[colorcolumn].astype(str)
-		plot = px.line(df, x="time", y="temp", color=colorcolumn, template = 'ggplot2+presentation',
+		plot = px.line(df, x="time", y="temp", color=colorcolumn, template = 'plotly_white+presentation',
 			color_discrete_sequence=px.colors.qualitative.Vivid)
-		plot.show()
+		plot.layout.xaxis.title.text='Time, Ga'
+		plot.layout.yaxis.title.text='Temp, K'
+	plot.layout.font.family='Arial'
+	plot.update_xaxes(showline=True, ticks="inside", linewidth=2, linecolor='black', mirror=True, range=[0, 4.5])
+	#ymin, ymax = min(df['temp']), max(df['temp'])
+	ymin, ymax = 1600, 2000
+	plot.update_yaxes(showline=True, linewidth=2, linecolor='black', mirror=True, range=[ymin, ymax]) #[11, 18]) #
+	#plot.update_layout(yaxis_type='log')
+	plot.show()
 	return df
-
 
 def ThermEv(planet, thermals, method, Tp0, tmax):
     Tp=Tp0
@@ -112,24 +121,25 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
 
     while t <= tmax:
 
-        if method=='dynamic': alpha,cp,k=get.Tdep_thermals(thermals,Tp)
-        if method=='static': alpha,cp,k=get.Tdep_thermals(thermals,1600.)
-        if method=='benchmark': alpha,cp,k,planet['pm']=STO['alpha'], STO['Cp'], STO['k'], STO['pm'] #3.7e-5,1250.,5.0,3340. #common benchmark values
-    
+        if method=='dynamic':
+            alpha,cp,k=get.Tdep_thermals(thermals,Tp)
+        if method=='static':
+            alpha,cp,k=get.Tdep_thermals(thermals,1600.)
+        if method=='benchmark':
+            alpha,cp,k,planet['pm']=STO['alpha'], STO['Cp'], STO['k'], STO['pm'] #3.7e-5,1250.,5.0,3340. #common benchmark values    
         viscT=get.viscosity(planet,Tp)
+
         Ra=get.rayleigh(planet,Tp,Ts,viscT,alpha,cp,k)
 
         production=produce_heat(planet,t)
         loss=flux_heat(planet,k,Tp,Ra)
         dTp=(dt*get.seconds*(production-loss))/(cp*planet['pm']*planet['Vm']) #Potentially change to (cp*Mp)?
-        Hts.append([t,Tp,Ra,production,loss,production/loss,alpha,cp])
+        Hts.append([t,Tp,Ra,production,loss,production/loss,alpha,cp,viscT,Pf(k)])
 
         Tp=Tp+dTp
         t=t+dt
-
     Evolution=np.asarray(Hts)
     return Evolution
-
 
 
 low_mg = {'C2/c':0.02553006, 'Wus':0.000000, 'Pv':0.40009268, 'an':0.00, \

@@ -1,14 +1,52 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure, show
 import getall as get
 from mineralDB import minerals
+import pandas as pd
+from constants import *
+from printall import Pe
+from printall import Pf
+def planets_from_summary():
+	# Purpose: Imports a tidy-format file containing all necessary (and any optional 
+    #    e.g. mineral) planetary parameters. Enables users to run planets in batch.
+    # Inputs: CSV file, without headers. Each line has format of: PlanetID,Parameter,Value
+    # Required parameters: alpha, CMBP, CMF, Cp, CRF, Mantle_depth, Mantle_mass, Mantle_rho, Mantle_vol,
+        # Mass_kg, Mass_Me, Radius_m, Radius_Re ... minerals are optional, any # of mins works for a given ID
+        # but the mineral abbreviation must match those in mineralDB.py, and end in '_percent' (e.g. Cpx_percent)
+    # Outputs: a nested dictionary whose keys are the planet IDs; each planet is a dict with parameters from file.
+    # Limitations: Formatting is specific, needs all params. See default cumulative.csv for sample formatting.
+    # Calls: none
+    # Tasks: Couple with get.build function to populate parameters for planets with missing parameters.
+    # Refs: n/a
+	file = 'cumulative.csv'
+	f = open(file,'r')
+	lines = f.readlines()
+	f.close()
+	files = {}
+	for line in lines:
+		temp = line.split(',')
+		if temp[0] not in files:
+			files[temp[0]] = {}
+		files[temp[0]][temp[1]] = float(temp[2])
 
-Grav = 6.67408e-11  #Gravitational constant
-Me = 5.97e24        #Earth mass in kg
-R = 8.3145          #Ideal gas constant
-Re = 6.371e6        #Earth radius in meters
-separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
+	for file in files:
+		files[file]['composition'] = {}
+		for mineral in minerals.keys():
+			if (mineral in files[file]) and (files[file][mineral]>0):
+					files[file]['composition'][mineral] = files[file][mineral]
+			try:
+				del files[file][mineral]
+			except KeyError:
+				pass
+		files[file]['composition'] = get.adds_up(files[file]['composition'])
+		# print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in files[file]['composition'].items()) + "}")
+	return(files)
+
+def read_cols(file):
+	f=open(file,'r')
+	lines=f.readlines()[0].split(separator)
+	lines[0]=lines[0][1:] #removes comment character from header
+	lines[-1]=lines[-1][0:-1] #removes newline character 
+	return lines
 
 def weights_by_volume(file,startline):
 	#returns: radius of each shell, relative contribution of each depth
@@ -86,66 +124,13 @@ def find_average(file,startline,relative_fractions,fraction_of_total):
 		section_average.append([list(average)])
 	return list(runningtotal), section_average
 
-def read_cols(file):
-	f=open(file,'r')
-	lines=f.readlines()[0].split(separator)
-	lines[0]=lines[0][1:] #removes comment character from header
-	lines[-1]=lines[-1][0:-1] #removes newline character 
-	return lines
-
 def bulk_mass_fraction(file,startline):
 	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
 	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
 	columns=read_cols(file)[11:-2] #Excludes iron phase and mass
 	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[11:-2])))
+	#print('Done importing composition from ExoPlex.')
 	return bulkmassfraction
-
-def plot_rel_contributions(radii,wt_local):
-	fig = figure(1)
-	ax = fig.add_subplot(111, autoscale_on=True)
-	weight_local=np.asarray(wt_local)
-	ax.plot(radii[:-1],weight_local[:,0],'k',linewidth=2)
-	maxx=max(radii)
-	maxy=max(weight_local[:,0])
-	minx=min(radii)
-	miny=min(weight_local[:,0])
-
-	plt.xlim(minx,maxx)
-	plt.ylim(miny,maxy)
-	#title='depth_rel_contribution.pdf'
-	#plt.savefig(title)
-	#return title
-	return ' '
-
-#To test these functions independent of ExoEvo, uncomment the below:
-#file='earth_nomantleFe_FeMg0.9_0.07_0.9_0.09_0.9.csv'
-#startline=1000  # This is the line where the mantle begins in the sample file. All NANs except Fe above it.
-#separator=','  # Default ExoPlex output is tab-delimited. The included sample output is in .csv format.
-#print('\nTesting calculation of mass fractions:\n',bulk_mass_fraction(file,startline))
-
-#Column 0 in sample ExoPlex output is depth. 1 is radius, 2 is density.
-#Columns 5 and 6 are alpha and Cp assuming Tp=1600K. Useful if investigating static Cp and a in ExoEvo.
-#Cp likely (?) needs mass-based averaging scheme. Alpha likely (?) needs volume-based averaging scheme.
-#Columns 10 onward are minerals. They are in variable order, and there are a variable number of them.
-'''
-def build(Mpl,file,Tp0):
-    startline=1000
-    with open(file) as f:
-        for i, line in enumerate(f):
-            if i == 0:
-                minerals=line.split(separator)[10:-1]
-            if i == 1:
-                Rpl=np.float(line.split(separator)[0])*1000/Re
-                Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb=get.build(Mpl=Mpl,Rpl=Rpl,Tp0=Tp0)
-            if i == startline+1:
-                Rc=np.float(line.split(separator)[1])*1000
-                d=Rp-Rc
-                Vm=(4./3.)*np.pi*(Rp**3 - Rc**3)
-                pm=(Mp-Mc)/Vm
-                Pcmb=np.float(line.split(separator)[3])
-    return Mp,Mc,Rp,Rc,d,Vm,Sa,pm,g,Pcmb,Tcmb
-
-'''
 
 def build(planet,file):
     startline=1000
@@ -172,60 +157,34 @@ def build(planet,file):
                 planet['g']=Grav*planet['Mp']/(planet['Rp']**2)
                 planet['CMF']=planet['Mc']/planet['Mp']
                 planet['CRF']=planet['Rc']/planet['Rp']
-
+    planet=thermals_from_file(planet, file, startline)
+    print('Done importing ExoPlex output file.')
     return planet
 
+def thermals_from_file(planet, file, startline):
+	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
+	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
+	
+	radii, vol_weights, fraction_of_volume = weights_by_volume(file,startline)
+	V_runningtotal, V_section_average = find_average(file,startline,vol_weights,fraction_of_volume)
+
+	#lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last 50 lines of exoplex file
+	planet['k'] = get.average_property(get.adds_up(bulk_mass_fraction(file, startline)), 'k', 5.0)
+	planet['alpha'] = V_runningtotal[5]
+	planet['Cp'] = M_runningtotal[6]
+	lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last few lines of exoplex file
+	# This is where viscosity params could be added, from lith proportions
+	print('Done importing thermal parameters from ExoPlex.')
+	return planet
+
+def lith_rheology(file, startline):
+	shellmasses, weight_masses, fraction_of_mass = weights_by_mass(file,startline)
+	M_runningtotal, M_section_average = find_average(file,startline,weight_masses,fraction_of_mass)
+	columns=read_cols(file)[11:-2] #Excludes iron phase and mass
+	bulkmassfraction=dict(zip(columns, 0.01*np.asarray(M_runningtotal[11:-2])))
+	#print('Done importing composition from ExoPlex.')
+	return bulkmassfraction
+
+#thermals = pd.read_csv(file, sep=',', usecols=[5, 6, 8], names=['Alpha', 'Cp', 'Vp'], header=0, skiprows=startline)
 
 
-
-def planets_from_summary():
-	file = 'cumulative.csv'
-	f = open(file,'r')
-	lines = f.readlines()
-	f.close()
-
-	files = {}
-
-	for line in lines:
-		temp = line.split(',')
-		if temp[0] not in files:
-			files[temp[0]] = {}
-		files[temp[0]][temp[1]] = float(temp[2])
-
-	for file in files:
-		files[file]['composition'] = {}
-		for mineral in minerals.keys():
-			if (mineral in files[file]) and (files[file][mineral]>0):
-					files[file]['composition'][mineral] = files[file][mineral]
-			try:
-				del files[file][mineral]
-			except KeyError:
-				pass
-		files[file]['composition'] = get.adds_up(files[file]['composition'])
-		# print("\n" + file + "\n" + "\n".join("{}: {}".format(k, v) for k, v in files[file]['composition'].items()) + "}")
-	return(files)
-
-
-'''       
-    # add ability to use column headers - particularly vital for mineralogy
-	a=np.genfromtxt(file,delimiter=',',colnames=TRUE, usecols=(),skip_header=coresteps)
-	headers=f.open(file,'r').readlines[0].split(',')
-	f.close()
-
-	print(type(headers))
-	print(a['Pressure'])
-	exit()
-
-	Planet={}
-	Planet['Rp']=1000*np.max(a['Radius'])
-	Planet['Rc']=1000*np.min(a['Radius'])
-	Planet['Pcmb']=np.max(a['Pressure'])
-	Planet['composition']=bulkmassfraction(file,startline)
-
-	comp={}
-
-	for row in range(len(a[:,0])):
-		for m in range(len(headers[6:])):
-			comp[headers[m]]=a[row,6+m]
-			P=a[row,2]
-'''

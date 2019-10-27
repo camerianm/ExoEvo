@@ -23,6 +23,7 @@ sep = ','
 
 verbose = "false"  # if "true": all print statements activated
 '''
+
 def adds_up(composition):
     # Purpose: weighted averaging schemes are vital in this code. adds_up protects against user error
     #    by checking that the sum of all weights is 1. This eases iterating over compositional spaces.
@@ -310,7 +311,9 @@ def thermals_at_P_ave(composition,P):
     thermals = np.zeros((nTs,4))
     thermals[:,0] = T_P
     thermals[:,3] = average_property(composition, 'k', 5.0)
-
+    for i in range(len(thermals[:,3])):
+        krad = (8.5*thermals[i,0]**3)/1011 # radiative portion from 10.1126/science.283.5408.1699
+        thermals[i,3] = thermals[i,3] + krad
     fgridstandard = open(gridstandard,'r')
     Ps = fgridstandard.readline().split(',')[lP_index:uP_index]
     loP,hiP = np.float(Ps[0]),np.float(Ps[1])
@@ -351,7 +354,8 @@ def Tdep_thermals(thermals,Tp):
     thermals[lT_index,0]
     alpha = thermals[lT_index,1] * lo_wt + thermals[lT_index + 1,1] * hi_wt
     Cp = thermals[lT_index,2] * lo_wt + thermals[lT_index + 1,2] * hi_wt
-    k = thermals[lT_index,3] * lo_wt + thermals[lT_index + 1,3] * hi_wt
+    k = thermals[lT_index,3]  # right now, all are same. changes are artifacts of slight heterogeneity.
+
     return alpha,Cp,k
 
 
@@ -389,3 +393,4 @@ def average_property(composition, property, defaultval):
         subtotal = subtotal + (part * wt)
     # subtotal = Ev_tot / wtused
     return subtotal
+
