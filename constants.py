@@ -13,8 +13,8 @@ seconds = 3.1536e16  # number of s in 1 Gyr
 # Customize structure and outputs:
 sep = ','  # outputs are comma-separated
 separator = sep
-tmax = 4.5  # in Gyr
-dt = 0.001  # in Gyr
+tmax = 4.55  # in Gyr
+dt = 0.01  # in Gyr
 verbose = "false"  # if "true": all print statements activated
 error_tolerance = 1.0e-6
 
@@ -22,6 +22,7 @@ error_tolerance = 1.0e-6
 # Schubert, Turcotte, and Olson, 2001 ; doi.org/10.1017/CBO9780511612879.014
 STO = {
     'method': 'benchmark',
+    'scaletemp': 1623.15,
     'urey': 0.75,
     'Ra_cr': 1100.0,
     'beta': 0.3,
@@ -44,7 +45,7 @@ STO = {
     }
 
 # Group 1:
-STO['Qe'] = 4.317e-14 * (STO['Mp']-STO['Mc'])*STO['Cp'] 
+STO['Qp'] = 4.317e-14 * (STO['Mp']-STO['Mc'])*STO['Cp'] 
 STO['Sa'] = STO['Cp'] * (STO['Mp']-STO['Mc']) * 1.377e-13 #4*pi*(Re)**2,
 STO['Rp'] = (STO['Sa']/(4*pi))**(0.5)
 STO['Rc'] = STO['Rp'] - 2.8e6
@@ -57,6 +58,66 @@ STO['Vm'] = (4./3. * pi * ((STO['Rp']**3-(STO['Rc'])**3)))
 # STO['Rp'] = Re
 # STO['Vm'] = (4./3. * pi * (STO['Rp']**3-(STO['Rc'])**3))
 
+
 # For a value based solely on the Urey Ratio and present-day radiogenic abundances:
 # STO['Qe'] = ((STO['urey'] * 60.0e-3 * (4*pi*Re*Re))/(e**(-1 * STO['decay'] * 4.5)))/(Me-STO['Mc'])  #4.06e24, #(4.86398 * (0.75*36.5e12))/(4.06e24)
+
+
+
+# Seales and Lenardic 2019 - parameter space exploration
+MC = {
+    'method': 'MC',
+    'Ra_cr': 1100.0,
+    'Ts': 273.0,
+    'gs': 10.0e6,
+    'pm': 4000.0,
+    'k': 5.0,
+    'kappa': 1.0e-6,
+    'Cp': 1250.,
+    'c1': 1.0,
+    'g': 9.8,
+    'alpha': 3.0e-5,
+    'd': 2.8e6,
+    'Tf': 1950.0,
+    'Mp': 5.97219e24,
+    'Mc': 1.883e24,    #'Vm': (4./3. * pi * ((Re**3 - (Re - 2.8e6)**3)))
+    'Rc': 3.4881e6    #'decay': 1.42e-17 * seconds,
+    }
+MC['Rp'] = MC['Rc'] + MC['d']
+MC['Sa'] = 4*pi*(MC['Rp'])**2
+MC['Vm'] = (4./3. * pi * ((MC['Rp']**3-(MC['Rc'])**3)))
+MC['DensityDerived'] = (MC['Mp']-MC['Mc'])/MC['Vm']
+
+# Karato and Korenaga 2008 - DOI: 10.1029/2007JB005100.
+# Consider: adding 10.1029/2018JB016558
+KK = {
+    'method': 'KK', #Karato and Korenaga olivine rheology
+    'urey': 0.75,
+    'Ra_cr': 1100.0,
+    'Ts': 273.0,
+    'A0': 10**4.32,
+    'p2': 2.56,
+    'COH': 1000./1.0e6, #upper mantle 0.1% OH by weight
+    'rCOH': 1.93,
+    'gs': 10.0e6,
+    'Ev': 387.0e3,
+    'pm': 4000.0,
+    'k': 5.0,
+    'kappa': 1.0e-6,
+    'Cp': 1250.,
+    'c1': 1.0,
+    'g': 9.8,
+    'alpha': 3.0e-5,
+    'd': 2.89e6,
+    'Tf': 1950.0,
+    'Mp': 5.97219e24,
+    'Mc': 1.883e24,    #'Vm': (4./3. * pi * ((Re**3 - (Re - 2.8e6)**3)))
+    'decay': 1.42e-17 * seconds
+    }
+MC['Rp'] = MC['Rc'] + MC['d']
+MC['Sa'] = 4*pi*(MC['Rp'])**2
+MC['Vm'] = (4./3. * pi * ((MC['Rp']**3-(MC['Rc'])**3)))
+MC['DensityDerived'] = (MC['Mp']-MC['Mc'])/MC['Vm']
+KK['visc0'] = 1./(KK['A0'] * KK['gs'] ** (-1 * KK['p2']) * KK['COH'] ** KK['rCOH'])
+
 # -----------END BENCHMARK PARAMETERS-----------
