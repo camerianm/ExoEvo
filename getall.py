@@ -1,28 +1,15 @@
 # A module for calculating thermodynamic parameters.
 # Recommended import style (to be distinguished from "get" function for dictionaries):
 #   import getall as get
-
+from constants import *
 import numpy as np
 from mineralDB import minerals as mins
-from printall import Pe # print scientific notation, 4 decimal places
-from printall import Pf # print float, 4 decimal places
-from constants import *
+Pe = lambda n: format(n, '.4e')
+Pf = lambda n: format(n, '.4f')
 
 alphadefault = 1.0e-5
 kdefault = 5.0
 Cpdefault = 1250.0
-'''
-# Constants
-Grav = 6.67408e-11  #Gravitational constant
-Me = 5.97e24        # Earth mass in kg
-R = 8.3145          # Ideal gas constant
-Re = 6.371e6        # Earth radius in meters
-seconds = 3.1536e16    # billion years to seconds conversion
-error_tolerance = 1.0e-6
-sep = ','
-
-verbose = "false"  # if "true": all print statements activated
-'''
 
 def adds_up(composition):
     # Purpose: weighted averaging schemes are vital in this code. adds_up protects against user error
@@ -87,11 +74,15 @@ def viscosity(planet,Tp):
     # Calls: n/a
     # Tasks: consider implementation of grain size and/or pressure, to accommodate rheological data whose prefactors depend on this
     # Refs: DOI: 10.1089/ast.2017.1695
-    visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp))
+
+    if planet['visc0']>1.0e13:  # assumes that large prefactor --> this is viscosity to scale to at planet['scaletemp'].
+        visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))     #1623.15)))
+    else:  # otherwise, assumes that it is prefactor in conventional sense.
+        visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp))
     return visc
 
 
-def rayleigh(planet,Tp,Ts,viscT,alpha,cp,k):
+def rayleigh(planet,Tp,Ts,viscT):
     # Purpose: calculate Rayleigh number, representing vigor of convection relative to conductive heat transport
     # Inputs: planet dictionary, plus supporting potentially time-variant float parameters
     # Outputs: 1 float: Rayleigh number, non-dimensional
@@ -99,7 +90,7 @@ def rayleigh(planet,Tp,Ts,viscT,alpha,cp,k):
     # Calls: n/a
     # Tasks: n/a
     # Refs: DOI: 10.1029/164GM03
-    Ra = (planet['pm'] ** 2) * planet['g'] * alpha * (Tp-Ts) * (planet['d'] ** 3) * cp/(k * viscT)
+    Ra = (planet['pm'] ** 2) * planet['g'] * planet['alpha'] * (Tp-Ts) * (planet['d'] ** 3) * planet['Cp']/(planet['k'] * viscT)
     return Ra
 
 
@@ -244,13 +235,7 @@ def build(planet):
 
     planet['CMF'] = CMF_estimate(planet['Mpl'],planet['Rpl'])  # Estimate core mass fraction from mass-radius relationships
     planet['CRF'] = CRF_estimate(planet['Mpl'],planet['CMF'],planet['Rpl'])  # Estimate core radius fraction from mass-radius relationships
-    
-    # Convert to SI units for further calculations
-    Mp,Mc,Rp,Rc = SIunits(planet['Mpl'],planet['CMF'],planet['Rpl'],planet['CRF'])
-    planet['Mp'] = Mp
-    planet['Mc'] = Mc
-    planet['Rp'] = Rp
-    planet['Rc'] = Rc
+    planet = SIunits(planet)
     
     # Calculate derived values
     planet['d'] = planet['Rp']-planet['Rc']                # mantle depth/thickness in m
@@ -263,16 +248,17 @@ def build(planet):
     planet['Tcmb'] = CMB_T(planet['Rp'],planet['Tp0'])
     planet['Pcmb'] = CMB_P(planet['Rp'])
 
+    planet['k'] = average_property(adds_up(planet['X']), 'k', 5.0)
     return planet
 
 
-def SIunits(Mpl,CMF,Rpl,CRF):
+def SIunits(planet): #Mpl,CMF,Rpl,CRF):
     # Converts from Earth-equivalents to SI units
-    Mp = Mpl * Me       # planet mass in kg
-    Mc = Mp * CMF       # core mass in kg
-    Rp = Rpl * Re       # planet radius in m
-    Rc = Rp * CRF       # core radius in m
-    return Mp,Mc,Rp,Rc
+    planet['Mp'] = planet['Mpl'] * Me       # planet mass in kg
+    planet['Mc'] = planet['Mp'] * planet['CMF']       # core mass in kg
+    planet['Rp'] = planet['Rpl'] * Re       # planet radius in m
+    planet['Rc'] = planet['Rp'] * planet['CRF']       # core radius in m
+    return planet
 
 
 def sample_planets(Rpl,Tp0):
@@ -288,7 +274,6 @@ def sample_planets(Rpl,Tp0):
         line = (Pe(p['Mp']), Pe(p['Mc']), Pe(p['Rp']), Pe(p['Rc']), Pf(p['d']), Pe(p['Vm']), Pe(p['Sa']), Pf(p['pm']), Pf(p['g']), Pf(p['Pcmb']), Pf(p['Tcmb']), '\n')
         f.write(sep.join(line))
         f.write('\n')
-        #Pe(Mp) + ',' + Pe(Mc) + ',' + Pe(Rp) + ',' + Pe(Rc) + ',' + Pf(d) + ',' + Pe(Vm) + ',' + Pe(Sa) + ',' + Pf(pm) + ',' + Pf(g) + ',' + Pf(Pcmb) + ',' + Pf(Tcmb) + '\n')
     print('Sample planets available at: ', filename)
     return
 
@@ -302,7 +287,7 @@ def thermals_at_P_ave(composition,P):
 
     # The below can be changed if indexing scheme changes from 1 Gpa resolution
 
-    gridstandard = 'alphagrid/q_alphagrid.csv'  # will not be changed when composition method is converted to end-member structure
+    gridstandard = 'alphagrid/O_alphagrid.csv'  # will not be changed when composition method is converted to end-member structure
 
     lP_index = int(np.floor(P))
     uP_index = lP_index + 2  # Only two values print due to string read-in mode, one GPa apart.
@@ -344,7 +329,6 @@ def thermals_at_P_ave(composition,P):
     return thermals
 
 def Tdep_thermals(thermals,Tp):
-
     gap = thermals[1,0]-thermals[0,0]
     lT_index = int(np.floor(Tp/gap))-1
     loT = thermals[lT_index,0]
@@ -355,9 +339,8 @@ def Tdep_thermals(thermals,Tp):
     alpha = thermals[lT_index,1] * lo_wt + thermals[lT_index + 1,1] * hi_wt
     Cp = thermals[lT_index,2] * lo_wt + thermals[lT_index + 1,2] * hi_wt
     k = thermals[lT_index,3]  # right now, all are same. changes are artifacts of slight heterogeneity.
-
-    return alpha,Cp,k
-
+    ack = {'alpha': alpha, 'Cp': Cp, 'k': k}
+    return ack #alpha,Cp,k
 
 def representative_mantle(Rp,Rc):
     # for calculating mantle's volume-averaged properties
