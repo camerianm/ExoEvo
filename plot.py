@@ -60,14 +60,43 @@ def evolution_colorcoded(df, colorcolumn, colortype):
 	plot.show()
 	return plot
 
-def plot_pd(df, p):
-	a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.5, xlim=(0, 4.5), ylim=(800,2200),
-		legend = p['showlegend'], kind = 'scatter', color='blue', alpha=1.0, figsize=(5,5))
+def plot_pd_mylimits(df, p):
+	#input required: pandas data frame, plus dictionary formatted as follows (example case)
+	# p1 = {'x': 'time', 'y': 'temp', 'showlegend': False, 'title': 'Thermal history sample case', 'xlim': (0.0, 4.55), 'ylim': (800,2000)}
+	a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.5, xlim=xlim, ylim=ylim,
+		legend = p['showlegend'], kind = 'scatter', color='8C1D40', alpha=1.0, figsize=(5,5))
+    fname = p['x']+p['y']+'.png'
+    plt.savefig(fname)
 	plt.show()
 	return None
 
-def plot_pd_autolim(df, p):
-        a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.5, #xlim=(0, 4.5), ylim=(800,2200),
-		legend = p['showlegend'], kind = 'scatter', color='red', alpha=1.0)
-	plt.show()
-        return None
+def plot_pd_autolimit(df, p):
+	#input required: pandas data frame, plus dictionary formatted as follows (example case)
+	# p1 = {'x': 'time', 'y': 'temp', 'showlegend': False, 'title': 'Thermal history sample case'}
+    if np.log(np.max(np.abs(df[p['y']]))) - np.log(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
+        a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.3, logy=True, legend = p['showlegend'], kind = 'scatter', color='8C1D40', alpha=0.8, s=0.3, figsize=(8, 8))
+    else:
+        a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.3, logy=False, legend = p['showlegend'], kind = 'scatter', color='8C1D40', alpha=0.8, s=0.3, figsize=(8, 8))
+    fname = p['x']+p['y']+'passfail.png'
+    plt.savefig(fname)
+    plt.show()
+    return a
+
+
+def plot_boolean(df, p):
+	#input required: pandas data frame with a boolean column (here called 'passfail' - will change to slicing, etc. later
+	# ...plus dictionary formatted as follows (example case)
+	# p1 = {'x': 'time', 'y': 'temp', 'showlegend': False, 'title': 'Thermal history sample case', 'colorcolumn': 'passfail'}
+    y_logscale, x_logscale = False, False #automatically assumes linear scale 
+    plt.scatter(df[df[colorcolumn]==False][p['x']], df[df[colorcolumn]==False][p['y']],  c='#8C1D40', alpha=0.8, s=0.3)
+    plt.scatter(df[df[colorcolumn]==True][p['x']], df[df[colorcolumn]==True][p['y']],  c='#FFC627',  alpha=0.8, s=0.3)
+    if np.log(np.max(np.abs(df[p['y']]))) - np.log(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
+        if p['y'] != 'temp':
+            plt.yscale('log')
+    if np.log(np.max(np.abs(df[p['x']]))) - np.log(np.min(np.abs(df[p['x']]))) > 3: # if the x limits span >3 orders of magnitude,
+        if p['x'] != 'time':
+            plt.xscale('log')
+    fname = p['x']+p['y']+colorcolumn+'.png'
+    plt.savefig(fname)
+    plt.show()
+    return fname
