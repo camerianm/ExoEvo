@@ -73,7 +73,7 @@ def plot_pd_mylimits(df, p):
 def plot_pd_autolimit(df, p):
 	#input required: pandas data frame, plus dictionary formatted as follows (example case)
 	# p1 = {'x': 'time', 'y': 'temp', 'showlegend': False, 'title': 'Thermal history sample case'}
-    if np.log(np.max(np.abs(df[p['y']]))) - np.log(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
+    if np.log10(np.max(np.abs(df[p['y']]))) - np.log10(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
         a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.3, logy=True, legend = p['showlegend'], kind = 'scatter', color='8C1D40', alpha=0.8, s=0.3, figsize=(8, 8))
     else:
         a = df.plot(x = p['x'], y = p['y'], title = p['title'], s=0.3, logy=False, legend = p['showlegend'], kind = 'scatter', color='8C1D40', alpha=0.8, s=0.3, figsize=(8, 8))
@@ -90,10 +90,10 @@ def plot_boolean(df, p):
     y_logscale, x_logscale = False, False #automatically assumes linear scale 
     plt.scatter(df[df[colorcolumn]==False][p['x']], df[df[colorcolumn]==False][p['y']],  c='#8C1D40', alpha=0.8, s=0.3)
     plt.scatter(df[df[colorcolumn]==True][p['x']], df[df[colorcolumn]==True][p['y']],  c='#FFC627',  alpha=0.8, s=0.3)
-    if np.log(np.max(np.abs(df[p['y']]))) - np.log(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
+    if np.log10(np.max(np.abs(df[p['y']]))) - np.log10(np.min(np.abs(df[p['y']]))) > 3: # if the y limits span >3 orders of magnitude,
         if p['y'] != 'temp':
             plt.yscale('log')
-    if np.log(np.max(np.abs(df[p['x']]))) - np.log(np.min(np.abs(df[p['x']]))) > 3: # if the x limits span >3 orders of magnitude,
+    if np.log10(np.max(np.abs(df[p['x']]))) - np.log10(np.min(np.abs(df[p['x']]))) > 3: # if the x limits span >3 orders of magnitude,
         if p['x'] != 'time':
             plt.xscale('log')
     fname = p['x']+p['y']+colorcolumn+'.png'
