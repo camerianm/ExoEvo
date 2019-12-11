@@ -53,6 +53,8 @@ def flux_heat(planet,Tp,Ra):
 	return Fman
 
 def ThermEv(planet, thermals, method, Tp0, tmax):
+	if not('beta' in planet.keys()):
+		planet['beta'] = DEFAULT['beta']
     Tp = Tp0
     #dt = 0.01
     t = 0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.

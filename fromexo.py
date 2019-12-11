@@ -3,8 +3,10 @@ import getall as get
 from mineralDB import minerals
 import pandas as pd
 from constants import *
-from printall import Pe
-from printall import Pf
+
+Pe = lambda n: format(n, '.4e')
+Pf = lambda n: format(n, '.4f')
+
 def planets_from_summary():
 	# Purpose: Imports a tidy-format file containing all necessary (and any optional 
     #    e.g. mineral) planetary parameters. Enables users to run planets in batch.
@@ -133,6 +135,8 @@ def bulk_mass_fraction(file,startline):
 	return bulkmassfraction
 
 def build(planet,file):
+    if not('Tp0' in planet.keys()):
+        planet['Tp0'] = DEFAULT['Tp0']
     startline=1000
     with open(file) as f:
         for i, line in enumerate(f):
@@ -168,8 +172,11 @@ def thermals_from_file(planet, file, startline):
 	radii, vol_weights, fraction_of_volume = weights_by_volume(file,startline)
 	V_runningtotal, V_section_average = find_average(file,startline,vol_weights,fraction_of_volume)
 
-	#lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last 50 lines of exoplex file
-	planet['k'] = get.average_property(get.adds_up(bulk_mass_fraction(file, startline)), 'k', 5.0)
+	#Get thermal conductivity from uppermost mantle
+	UMradii, UMvol_weights, UMfraction_of_volume = weights_by_volume(file, 2900)
+	UMV_runningtotal, UMV_section_average = find_average(file,2900,UMvol_weights,UMfraction_of_volume)
+	planet['k'] = 0.0681*np.exp(0.0006 * UMV_runningtotal[8] * 1000.0) 
+	# planet['k'] = get.average_property(get.adds_up(bulk_mass_fraction(file, startline)), 'k', 5.0)
 	planet['alpha'] = V_runningtotal[5]
 	planet['Cp'] = M_runningtotal[6]
 	lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last few lines of exoplex file
@@ -185,6 +192,6 @@ def lith_rheology(file, startline):
 	#print('Done importing composition from ExoPlex.')
 	return bulkmassfraction
 
-#thermals = pd.read_csv(file, sep=',', usecols=[5, 6, 8], names=['Alpha', 'Cp', 'Vp'], header=0, skiprows=startline)
 
-
+#thermals = pd.read_csv(file, sep=', header=0, skiprows=startline)
+#note that pandas takes much longer to load the csv for MC cases.

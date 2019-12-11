@@ -7,9 +7,6 @@ from mineralDB import minerals as mins
 Pe = lambda n: format(n, '.4e')
 Pf = lambda n: format(n, '.4f')
 
-alphadefault = 1.0e-5
-kdefault = 5.0
-Cpdefault = 1250.0
 
 def adds_up(composition):
     # Purpose: weighted averaging schemes are vital in this code. adds_up protects against user error
@@ -34,6 +31,7 @@ def adds_up(composition):
 
 def TdepVisc(composition):
     # Purpose: Establish constants to be used in Arrhenius expressions for temperature-dependent viscosity.
+    # ONLY APPLIES IF THESE ARE NOT ALREADY PROVIDED BY THE USER.
     # Inputs: dictionary containing fractional or percentage weight abundances of mineral phases
     # Outputs: 3 floats: a constant, mass-averaged activation energy for diffusion creep, viscosity baseline
     # Limitations: If Ev isn't populated in minDB.py (common), a default value is assumed, possibly skewing results.
@@ -51,20 +49,13 @@ def TdepVisc(composition):
     #       add wet values to minDB.py and/or use balance of wet/dry to calculate weighted Ev_tot.
     # Refs: DOI: 10.1089/ast.2017.1695
 
-    # Olivine values
-    c1_default = 1.0
-    Ev_default = mins['O']['Ev']
-    visc0_default = mins['O']['visc0']
-    
     # Ev_tot = average_property(composition, 'Ev', Ev_default)
     # visc0_tot = average_property(composition, 'visc0', visc0_default)
     
-    # Update 10/1: Removing viscosity from consideration...
-    Ev_tot = Ev_default
-    visc0_tot = visc0_default
-    c1_tot = c1_default
-    return c1_tot,Ev_tot,visc0_tot
+    # Update 10/1: Removing viscosity from consideration, if not provided.
+    print('this is no longer used')
 
+    return c1_tot,Ev_tot,visc0_tot
 
 def viscosity(planet,Tp):
     # Purpose: Arrhenius expression for strictly temperature-dependent viscosity given diffusion creep
@@ -74,13 +65,22 @@ def viscosity(planet,Tp):
     # Calls: n/a
     # Tasks: consider implementation of grain size and/or pressure, to accommodate rheological data whose prefactors depend on this
     # Refs: DOI: 10.1089/ast.2017.1695
-
-    if planet['visc0']>1.0e13:  # assumes that large prefactor --> this is viscosity to scale to at planet['scaletemp'].
-        visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))     #1623.15)))
-    else:  # otherwise, assumes that it is prefactor in conventional sense.
-        visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp))
+    for i in ['Ev', 'visc0', 'c1']:
+        if not(i in planet.keys()):
+            planet[i]=DEFAULT[i]
+            case = 1
+    if not('scaletemp' in planet.keys()): #if no scaling temp is provided...
+        if (planet['visc0']<1.0e13): #assume prefactor isn't normalized to a temp
+            visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp)) #and get viscosity
+            case = 2
+        else: #but if the prefactor was too high for that to be reasonable,
+            planet['scaletemp'] = DEFAULT['scaletemp']
+            visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
+            case = 3
+            # assumes it's a viscosity scaled to default scaletemp
+    else:
+        visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
     return visc
-
 
 def rayleigh(planet,Tp,Ts,viscT):
     # Purpose: calculate Rayleigh number, representing vigor of convection relative to conductive heat transport

@@ -6,13 +6,10 @@ import pandas as pd
 import evolve
 import fromexo
 import getall as get
-import printall as prnt
-from printall import Pe #print scientific notation, 4 decimal
-from printall import Pf #print float, 4 decimal
 from mineralDB import minerals
 from constants import STO
-
-#import plotly.express as px
+Pe = lambda n: format(n, '.4e')
+Pf = lambda n: format(n, '.4f')
 
 ########################################################################
 # User input values:
