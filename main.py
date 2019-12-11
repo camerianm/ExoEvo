@@ -1,6 +1,7 @@
 # Import external packages
 import numpy as np
 import pandas as pd
+import plotly.io as pio
 
 # Import internal packages
 import evolve
@@ -8,6 +9,7 @@ import fromexo
 import getall as get
 from mineralDB import minerals
 from constants import STO
+import plot
 Pe = lambda n: format(n, '.4e')
 Pf = lambda n: format(n, '.4f')
 
@@ -45,8 +47,9 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 ########################################################################
 # End of user input values
 ########################################################################
-columnkeys = ['time', 'temp', 'rayleigh', 'production', 'loss', 'urey', 'alpha', 'cp','viscT', 'k']
-planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref}
+planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref,
+     'outcols': ['ID', 'time', 'temp', 'Ra', 'H', 'Q', 'Urey', 'viscT', 
+     'visc0', 'Ev', 'log10visc', 'beta']}
 
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
 # Build your mantle and acquire its unchanging material properties.
@@ -54,17 +57,15 @@ if ExoPlex == 'TRUE':
     composition = fromexo.bulk_mass_fraction(file,startline)
     composition = get.adds_up(composition)
     planet = fromexo.build(planet=planet,file=file)
-    thermals = get.thermals_at_P_ave(composition, Pref) #makes sure to get thermal conductivity
-    thermals[:,1] = planet['alpha'] #replaces values in thermals with those in file
-    thermals[:,2] = planet['Cp']
-    thermals[:,3] = planet['k']
+    thermals = [planet['alpha'], planet['Cp'], planet['k']] #get.thermals_at_P_ave(composition, Pref)
+    #thermals[:,1] = planet['alpha'] #replaces values in thermals with those in file
+    #thermals[:,2] = planet['Cp']
+    #thermals[:,3] = planet['k']
 
 else: # custom composition
     planet=get.build(planet)
     composition = get.adds_up(my_composition)
     thermals=get.thermals_at_P_ave(composition, Pref)
-
-planet['c1'],planet['Ev'],planet['visc0']=get.TdepVisc(composition)
 
 if method == 'benchmark':
         planet.update(STO)
@@ -75,10 +76,11 @@ if Pref<4.001:
 # Evolve your planet over time.
 Evolution = evolve.ThermEv(planet, thermals, method, planet['Tp0'], tmax)
 #evolve.plot_heat(Evolution,method)
-evolve.evolution_colorcoded(Evolution, columnkeys, 'k', 'discrete')
-ev = pd.DataFrame(data=Evolution, columns=columnkeys)
-ev.to_csv(outfolder+outfile)
-
+p = plot.evolution_colorcoded(Evolution, 'visc0', 'discrete')
+pio.write_html(p, outfolder+outfile+'test.html')
+#ev = pd.DataFrame(data=Evolution, columns=columnkeys)
+Evolution.to_csv(outfolder+outfile)
+exit()
 for i in sorted(planet.keys()):
     print(i, '\t', planet[i])
 print()

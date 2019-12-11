@@ -49,14 +49,15 @@ def flux_heat(planet,Tp,Ra):
 		theta=frank_kamenetskii(planet['Ev'],Tp)
 		Fman=(planet['Sa']*(planet['c1']*planet['k']*(Tp-Ts)/planet['d'])*
 			(theta**(-(1+planet['beta'])))*(Ra**(planet['beta'])))
-
 	return Fman
 
-def ThermEv(planet, thermals, method, Tp0, tmax):
-	if not('beta' in planet.keys()):
-		planet['beta'] = DEFAULT['beta']
+def ThermEv(planet, thermals, method, Tp0, tmax):    
+    for i in ['beta', 'Qp']: # add on more as necessary
+        if not(i in planet.keys()):
+            planet[i] = DEFAULT[i]
+            print('Using default ', i)
+
     Tp = Tp0
-    #dt = 0.01
     t = 0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
     Hts = []             # A list of lists; column names are in get.keys['columns']
     

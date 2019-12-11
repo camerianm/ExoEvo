@@ -179,7 +179,7 @@ def thermals_from_file(planet, file, startline):
 	# planet['k'] = get.average_property(get.adds_up(bulk_mass_fraction(file, startline)), 'k', 5.0)
 	planet['alpha'] = V_runningtotal[5]
 	planet['Cp'] = M_runningtotal[6]
-	lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last few lines of exoplex file
+	#lith = get.adds_up(bulk_mass_fraction(file, 2900)) #lithosphere composition - last few lines of exoplex file
 	# This is where viscosity params could be added, from lith proportions
 	print('Done importing thermal parameters from ExoPlex.')
 	return planet
