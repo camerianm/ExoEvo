@@ -52,10 +52,6 @@ def flux_heat(planet,Tp,Ra):
 	return Fman
 
 def ThermEv(planet, thermals, method, Tp0, tmax):    
-    for i in ['beta', 'Qp']: # add on more as necessary
-        if not(i in planet.keys()):
-            planet[i] = DEFAULT[i]
-            print('Using default ', i)
 
     Tp = Tp0
     t = 0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
@@ -65,12 +61,26 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
         planet.update(MC)
     if method=='benchmark':
         planet.update(STO)
+    # if method =='static':
+    #     tdict = {'alpha': thermals[int(DEFAULT['scaletemp']/10)-1][1],
+    #              'Cp': thermals[int(DEFAULT['scaletemp']/10)-1][2],
+    #              'k': thermals[int(DEFAULT['scaletemp']/10)-1][3]} #update(get.Tdep_thermals(thermals,DEFAULT['scaletemp']))    
+    #    planet.update(tdict)
+    idefault = []
+    for i in DEFAULT.keys():
+    	try:
+    		planet[i]
+    	except:
+    		planet[i]=DEFAULT[i]
+    		idefault.append(i)
+    print('using default values for: ', idefault)
+    
+        #planet.update(DEFAULT)
     #planet['Qp'] = (7.38e-12 * UreyRatio/0.75862069) * np.exp(1.42e-17 * seconds * tmax) * (planet['Mp'] - planet['Mc']) * planet['Qpl']
+
     while t <= tmax:
-        #if method =='dynamic':
-        #    planet.update(get.Tdep_thermals(thermals,Tp))
-        #if method=='static':
-        #    planet.update(get.Tdep_thermals(thermals,Tp))
+        if method =='dynamic':
+            planet.update(get.Tdep_thermals(thermals,Tp))
 
         viscT=get.viscosity(planet,Tp)
         Ra=get.rayleigh(planet,Tp,Ts,viscT)
@@ -78,13 +88,13 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
         production=produce_heat(planet,t)
         loss=flux_heat(planet,Tp,Ra)
         dTp=(dt*seconds*(production-loss))/(planet['Cp']*(planet['Mp']-planet['Mc']))
-        Hts.append([str({k:v for k,v in planet.items() if k in ['scaletemp', 'beta', 'Q0', 'Qp', 'Ev', 'visc0']}), t,Tp-273.15,Ra,production,loss,production/loss, viscT, np.log10(planet['visc0']),planet['Ev']/1000.,np.log10(viscT), planet['beta']])  #planet['k']])
+        Hts.append([str({k:v for k,v in planet.items() if k in ['scaletemp', 'beta', 'Q0', 'Qp', 'Ev', 'visc0']}), t,Tp,Ra,production,loss,production/loss, viscT, np.log10(planet['visc0']),planet['Ev']/1000.,np.log10(viscT), planet['beta']])  #planet['k']])
 
         Tp=Tp+dTp
         t=t+dt
     
     Evolution=pd.DataFrame(Hts, columns = planet['outcols'])
-    Evolution['passfail'] = len(Evolution) * [50>=abs(Evolution.at[int(np.floor((tmax)/0.01)), 'temp']-1350.0)]
+    Evolution['passfail'] = len(Evolution) * [50>=abs(Evolution.at[int(np.floor((tmax)/0.01)), 'temp']-1625.0)]
     return Evolution
 
 

@@ -329,17 +329,20 @@ def thermals_at_P_ave(composition,P):
     return thermals
 
 def Tdep_thermals(thermals,Tp):
-    gap = thermals[1,0]-thermals[0,0]
-    lT_index = int(np.floor(Tp/gap))-1
-    loT = thermals[lT_index,0]
-    hiT = thermals[lT_index + 1,0]
-    hi_wt = (Tp-loT)/(hiT-loT)
-    lo_wt = (hiT-Tp)/(hiT-loT)
-    thermals[lT_index,0]
-    alpha = thermals[lT_index,1] * lo_wt + thermals[lT_index + 1,1] * hi_wt
-    Cp = thermals[lT_index,2] * lo_wt + thermals[lT_index + 1,2] * hi_wt
-    k = thermals[lT_index,3]  # right now, all are same. changes are artifacts of slight heterogeneity.
-    ack = {'alpha': alpha, 'Cp': Cp, 'k': k}
+    if len(thermals) < 4: #if it's just a dictionary of only 3 values...
+        ack=thermals
+    else:
+        gap = thermals[1,0]-thermals[0,0]
+        lT_index = int(np.floor(Tp/gap))-1
+        loT = thermals[lT_index,0]
+        hiT = thermals[lT_index + 1,0]
+        hi_wt = (Tp-loT)/(hiT-loT)
+        lo_wt = (hiT-Tp)/(hiT-loT)
+        thermals[lT_index,0]
+        alpha = thermals[lT_index,1] * lo_wt + thermals[lT_index + 1,1] * hi_wt
+        Cp = thermals[lT_index,2] * lo_wt + thermals[lT_index + 1,2] * hi_wt
+        k = thermals[lT_index,3]  # right now, all are same. changes are artifacts of slight heterogeneity.
+        ack = {'alpha': alpha, 'Cp': Cp, 'k': k}
     return ack #alpha,Cp,k
 
 def representative_mantle(Rp,Rc):

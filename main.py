@@ -19,7 +19,7 @@ Pf = lambda n: format(n, '.4f')
 
 # Should I import planetary params from ExoPlex? If not, my_composition is assumed.
 ExoPlex='TRUE'
-method='static'    # 'static', 'dynamic', or 'benchmark' thermal parameters
+method='DEFAULT'    # dynamic, benchmark, MC, or DEFAULT parameters if not provided explicitly
 
 # Where should I send outputs from this run?
 outfolder = 'OUTPUT/'
@@ -35,7 +35,7 @@ Rpl=1.0             # Relative heat production per kg mantle, vs Earth  Earth = 
 Qpl=1.0             # Planet's starting radiogenic abundance, per kg mantle
 Tp0=2000.           # starting mantle potential temperature in K        Earth = 1800.0 (initial), 1650 (present)
 Pref=5.0           # reference pressure for thermal calculations, in GPa. If Pref is less than 4, Pref is set to half the CMB pressure.
-tmax=4.5           # ending time, in Ga - how long to cool the planet         Earth = 4.55
+tmax=4.55           # ending time, in Ga - how long to cool the planet         Earth = 4.55
 my_composition = {'O': 1.0}
 '''
 my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
@@ -47,7 +47,7 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 ########################################################################
 # End of user input values
 ########################################################################
-planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref,
+planet={'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref, 
      'outcols': ['ID', 'time', 'temp', 'Ra', 'H', 'Q', 'Urey', 'viscT', 
      'visc0', 'Ev', 'log10visc', 'beta']}
 
@@ -57,35 +57,31 @@ if ExoPlex == 'TRUE':
     composition = fromexo.bulk_mass_fraction(file,startline)
     composition = get.adds_up(composition)
     planet = fromexo.build(planet=planet,file=file)
-    thermals = [planet['alpha'], planet['Cp'], planet['k']] #get.thermals_at_P_ave(composition, Pref)
-    #thermals[:,1] = planet['alpha'] #replaces values in thermals with those in file
-    #thermals[:,2] = planet['Cp']
-    #thermals[:,3] = planet['k']
+    thermals = {'alpha': planet['alpha'], 'Cp': planet['Cp'], 'k': planet['k']} #get.thermals_at_P_ave(composition, Pref)
 
 else: # custom composition
-    planet=get.build(planet)
     composition = get.adds_up(my_composition)
+    planet['X'] = composition
+    planet=get.build(planet)
     thermals=get.thermals_at_P_ave(composition, Pref)
-
-if method == 'benchmark':
-        planet.update(STO)
 
 if Pref<4.001:
     planet['Pref'] = 0.5*planet['Pcmb']
 
 # Evolve your planet over time.
 Evolution = evolve.ThermEv(planet, thermals, method, planet['Tp0'], tmax)
-#evolve.plot_heat(Evolution,method)
+Evolution.to_csv(outfolder+outfile)
 p = plot.evolution_colorcoded(Evolution, 'visc0', 'discrete')
 pio.write_html(p, outfolder+outfile+'test.html')
-#ev = pd.DataFrame(data=Evolution, columns=columnkeys)
-Evolution.to_csv(outfolder+outfile)
-exit()
+print()
+print('Done! See output file: ', outfile)
+
+'''
 for i in sorted(planet.keys()):
     print(i, '\t', planet[i])
 print()
 for i in sorted(composition.keys()):
       print(i, '\t', composition[i])
-print()
-print('Done! See output file: ', outfile)
 
+
+'''
