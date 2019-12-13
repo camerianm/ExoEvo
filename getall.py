@@ -6,6 +6,7 @@ import numpy as np
 from mineralDB import minerals as mins
 Pe = lambda n: format(n, '.4e')
 Pf = lambda n: format(n, '.4f')
+from scipy import stats
 
 
 def adds_up(composition):
@@ -29,9 +30,10 @@ def adds_up(composition):
     return(composition)
 
 
-def TdepVisc(composition):
+def TWdepVisc(planet):
     # Purpose: Establish constants to be used in Arrhenius expressions for temperature-dependent viscosity.
-    # ONLY APPLIES IF THESE ARE NOT ALREADY PROVIDED BY THE USER.
+    # Draws these from 2 sigma (95%CI) about a normal distribution about Jain, et al. 2019 for OL-WA1.
+    # Not used for most cases.
     # Inputs: dictionary containing fractional or percentage weight abundances of mineral phases
     # Outputs: 3 floats: a constant, mass-averaged activation energy for diffusion creep, viscosity baseline
     # Limitations: If Ev isn't populated in minDB.py (common), a default value is assumed, possibly skewing results.
@@ -48,14 +50,17 @@ def TdepVisc(composition):
     #   consider implementation of grain size and/or pressure, to accommodate rheological data whose prefactors depend on this
     #       add wet values to minDB.py and/or use balance of wet/dry to calculate weighted Ev_tot.
     # Refs: DOI: 10.1089/ast.2017.1695
-
     # Ev_tot = average_property(composition, 'Ev', Ev_default)
     # visc0_tot = average_property(composition, 'visc0', visc0_default)
-    
-    # Update 10/1: Removing viscosity from consideration, if not provided.
-    print('this is no longer used')
-
-    return c1_tot,Ev_tot,visc0_tot
+    gs = 100.0 #grain size in microns - arbitrary right now
+    c1 = 0.5
+    Ev = 1000.0 * stats.truncnorm.rvs(-2, 2, loc=364., scale=61., size=1)
+    visc0 = (1.00e6 * (10.0**stats.truncnorm.rvs(-2, 2, loc=5.49, scale=0.76, size=1)) * #prefactor
+             (planet['Water']*1.0e2*1.0e4)**stats.truncnorm.rvs(-2,2,loc=0.85, scale=0.25, size=1) * #wt fraction water to ppm H/Si
+             gs ** stats.truncnorm.rvs(-2,2,loc=1.74, scale=0.13)) #grain size
+    flowparams = {'c1': c1, 'Ev': Ev[0], 'visc0': visc0[0]}
+    planet.update(flowparams)
+    return planet
 
 def viscosity(planet,Tp):
     # Purpose: Arrhenius expression for strictly temperature-dependent viscosity given diffusion creep
@@ -65,19 +70,15 @@ def viscosity(planet,Tp):
     # Calls: n/a
     # Tasks: consider implementation of grain size and/or pressure, to accommodate rheological data whose prefactors depend on this
     # Refs: DOI: 10.1089/ast.2017.1695
-    for i in ['Ev', 'visc0', 'c1']:
+    for i in ['Ev', 'visc0', 'c1']: #if user hasn't provided viscosity law data, assume default case - i.e., visc0=scaled viscosity.
         if not(i in planet.keys()):
             planet[i]=DEFAULT[i]
-            case = 1
     if not('scaletemp' in planet.keys()): #if no scaling temp is provided...
         if (planet['visc0']<1.0e13): #assume prefactor isn't normalized to a temp
             visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp)) #and get viscosity
-            case = 2
-        else: #but if the prefactor was too high for that to be reasonable,
+        else: #but if the prefactor was too high for that to be reasonable, assume it's a viscosity scaled to default scaletemp
             planet['scaletemp'] = DEFAULT['scaletemp']
             visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
-            case = 3
-            # assumes it's a viscosity scaled to default scaletemp
     else:
         visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
     return visc
@@ -297,8 +298,9 @@ def thermals_at_P_ave(composition,P):
     thermals[:,0] = T_P
     thermals[:,3] = average_property(composition, 'k', 5.0)
     for i in range(len(thermals[:,3])):
-        krad = (8.5*thermals[i,0]**3)/1011 # radiative portion from 10.1126/science.283.5408.1699
+        krad = (8.5*thermals[i,0]**3)/(1.0e11) # radiative portion from 10.1126/science.283.5408.1699
         thermals[i,3] = thermals[i,3] + krad
+    print(thermals[:,3])
     fgridstandard = open(gridstandard,'r')
     Ps = fgridstandard.readline().split(',')[lP_index:uP_index]
     loP,hiP = np.float(Ps[0]),np.float(Ps[1])
