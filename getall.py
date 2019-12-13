@@ -25,8 +25,8 @@ def adds_up(composition):
         for i in composition:
             new = composition[i] / subtotal
             composition[i] = new
-            if verbose == "true":
-                print(i,'\t\t',Pf(composition[i]))
+            # if verbose == "true":
+            #     print(i,'\t\t',Pf(composition[i]))
     return(composition)
 
 
@@ -300,7 +300,6 @@ def thermals_at_P_ave(composition,P):
     for i in range(len(thermals[:,3])):
         krad = (8.5*thermals[i,0]**3)/(1.0e11) # radiative portion from 10.1126/science.283.5408.1699
         thermals[i,3] = thermals[i,3] + krad
-    print(thermals[:,3])
     fgridstandard = open(gridstandard,'r')
     Ps = fgridstandard.readline().split(',')[lP_index:uP_index]
     loP,hiP = np.float(Ps[0]),np.float(Ps[1])

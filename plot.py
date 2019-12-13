@@ -47,12 +47,12 @@ def evolution_colorcoded(df, colorcolumn, colortype):
 		plot.layout.yaxis.title.text='Temp, K'
 	if colortype == None:
 		plot = px.line(df, x="time", y="temp", template = 'plotly_white+presentation',
-			hover_data=['Ev', 'visc0', 'log10visc', 'Ra'])
+			hover_data=list(df.keys()))
 		plot.update_traces(line=dict(width=3.0, color='rgba(1, 1, 1, 0.1)'))
 		plot.layout.xaxis.title.text='Time, Ga'
 		plot.layout.yaxis.title.text='Temperature, K'
 	plot.layout.font.family='Arial'
-	plot.update_xaxes(showline=True, ticks="inside", linewidth=2, linecolor='black', mirror=True, range=[0, 4.55])
+	plot.update_xaxes(showline=True, ticks="inside", linewidth=2, linecolor='black', mirror=True, range=[0, list(df['time'])[-1]])
 	ymin, ymax = min(df['temp']), max(df['temp'])
 	plot.update_yaxes(showline=True, linewidth=2, linecolor='black', mirror=True, range=[ymin, ymax]) #[11, 18]) #
 	plot.update_layout(showlegend=False) 
