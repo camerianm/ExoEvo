@@ -7,7 +7,27 @@ from mineralDB import minerals as mins
 Pe = lambda n: format(n, '.4e')
 Pf = lambda n: format(n, '.4f')
 from scipy import stats
+import fromexo
 
+def setup(planet, ExoPlex, file, startline, my_composition):
+
+    if ExoPlex == 'TRUE':
+        planet['composition'] = adds_up(fromexo.bulk_mass_fraction(file,startline))
+        planet = fromexo.build(planet=planet,file=file)
+        if planet['Pref']<4.001:
+            planet['Pref'] = 0.5*planet['Pcmb']
+        thermals = {'alpha': planet['alpha'], 'Cp': planet['Cp'], 'k': planet['k']} #get.thermals_at_P_ave(composition, Pref)
+    else: # custom composition, assumes
+        planet['composition'] = adds_up(my_composition)
+        planet=build(planet)
+        if planet['Pref']<4.001:
+            planet['Pref'] = 0.5*planet['Pcmb']
+        composition = planet['composition'] 
+        thermals=thermals_at_P_ave(composition,  planet['Pref'])
+    if planet['method'] == 'dynamic':
+        thermals=thermals_at_P_ave(planet['composition'], planet['Pref'])
+    planet.update(planet['constants'])
+    return planet, thermals
 
 def adds_up(composition):
     # Purpose: weighted averaging schemes are vital in this code. adds_up protects against user error
@@ -52,12 +72,12 @@ def TWdepVisc(planet):
     # Refs: DOI: 10.1089/ast.2017.1695
     # Ev_tot = average_property(composition, 'Ev', Ev_default)
     # visc0_tot = average_property(composition, 'visc0', visc0_default)
-    gs = 100.0 #grain size in microns - arbitrary right now
+    #gs = 100.0 #grain size in microns - arbitrary right now
     c1 = 0.5
-    Ev = 1000.0 * stats.truncnorm.rvs(-2, 2, loc=364., scale=61., size=1)
-    visc0 = (1.00e6 * (10.0**stats.truncnorm.rvs(-2, 2, loc=5.49, scale=0.76, size=1)) * #prefactor
-             (planet['Water']*1.0e2*1.0e4)**stats.truncnorm.rvs(-2,2,loc=0.85, scale=0.25, size=1) * #wt fraction water to ppm H/Si
-             gs ** stats.truncnorm.rvs(-2,2,loc=1.74, scale=0.13)) #grain size
+    Ev = 1000.0 * stats.truncnorm.rvs(-3, 3, loc=364., scale=61., size=500)
+    #visc0 = 1/(1.00e6 * (10.0**stats.truncnorm.rvs(-2, 2, loc=5.49, scale=0.76, size=1)) * #prefactor
+    #         (planet['Water']*1.0e2*1.0e4)**stats.truncnorm.rvs(-2,2,loc=0.85, scale=0.25, size=1) * #wt fraction water to ppm H/Si
+    #         gs ** (-1*stats.truncnorm.rvs(-2,2,loc=1.74, scale=0.13))) #grain size
     flowparams = {'c1': c1, 'Ev': Ev[0], 'visc0': visc0[0]}
     planet.update(flowparams)
     return planet
@@ -80,7 +100,10 @@ def viscosity(planet,Tp):
             planet['scaletemp'] = DEFAULT['scaletemp']
             visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
     else:
-        visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
+        if (planet['visc0']<1.0e13): #assume prefactor isn't normalized to a temp
+            visc = planet['visc0'] * np.exp(planet['Ev']/(R * Tp)) #and get viscosity
+        else:
+            visc = planet['visc0'] * np.exp((planet['Ev']/(R * Tp)) - (planet['Ev']/(R*planet['scaletemp'])))
     return visc
 
 def rayleigh(planet,Tp,Ts,viscT):
@@ -249,7 +272,7 @@ def build(planet):
     planet['Tcmb'] = CMB_T(planet['Rp'],planet['Tp0'])
     planet['Pcmb'] = CMB_P(planet['Rp'])
 
-    planet['k'] = average_property(adds_up(planet['X']), 'k', 5.0)
+    planet['k'] = average_property(adds_up(planet['composition']), 'k', 5.0)
     return planet
 
 
@@ -296,7 +319,7 @@ def thermals_at_P_ave(composition,P):
     nTs = len(T_P[:])
     thermals = np.zeros((nTs,4))
     thermals[:,0] = T_P
-    thermals[:,3] = average_property(composition, 'k', 5.0)
+    thermals[:,3] = average_property(composition, 'k', DEFAULT['k'])
     for i in range(len(thermals[:,3])):
         krad = (8.5*thermals[i,0]**3)/(1.0e11) # radiative portion from 10.1126/science.283.5408.1699
         thermals[i,3] = thermals[i,3] + krad

@@ -47,7 +47,7 @@ def flux_heat(planet,Tp,Ra):
             (get.viscosity(planet,planet['scaletemp']) / get.viscosity(planet,Tp))**(planet['beta']))
     else:  # naive method - no initial flux required.
         theta=frank_kamenetskii(planet['Ev'],Tp)
-        Fman=(planet['Sa']*(planet['c1']*planet['k']*(Tp-Ts)/planet['d'])*
+        Fman=planet['Sa']*(planet['c1']*planet['k']*(Tp-planet['Ts'])/planet['d']*
             (theta**(-(1+planet['beta'])))*(Ra**(planet['beta'])))
     return Fman
 
@@ -56,22 +56,22 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
     Tp = Tp0
     t = 0.0              # Keep Hts=[], Tp=Tp0, and t=0.0 here, so we can reset values and run again.
     Hts = pd.DataFrame(columns=planet['outcols'])            # A list of lists; column names are in get.keys['columns']
-    
+
+    if method =='dynamic':
+        thermals = get.thermals_at_P_ave(planet['composition'],planet['Pref'])    
     if method=='MC':
         planet.update(MC)
-    if method=='benchmark':
-        planet.update(STO)
+    if method=='default':
+        planet.update(DEFAULT)
     if method =='static':
         thermarray = get.thermals_at_P_ave(planet['composition'],planet['Pref'])
         tdict ={'alpha': thermarray[int(DEFAULT['scaletemp']/10)-1][1],
                 'Cp': thermarray[int(DEFAULT['scaletemp']/10)-1][2],
                 'k': thermarray[int(DEFAULT['scaletemp']/10)-1][3]} #update(get.Tdep_thermals(thermals,DEFAULT['scaletemp']))    
         planet.update(tdict)
-    if method =='dynamic':
-        thermals = get.thermals_at_P_ave(planet['composition'],planet['Pref'])
 
     idefault = []
-    for i in DEFAULT.keys():
+    for i in DEFAULT.keys(): #make sure all values are populated
         try:
             planet[i]
         except:
@@ -79,15 +79,20 @@ def ThermEv(planet, thermals, method, Tp0, tmax):
     #planet['Qp'] = (7.38e-12 * UreyRatio/0.75862069) * np.exp(1.42e-17 * seconds * tmax) * (planet['Mp'] - planet['Mc']) * planet['Qpl']
 
     while t <= tmax:
+        if Tp<0:
+            print('Congrats, you broke it! (It happens to the best of us.)')
+            print('Fateful moment:', Pf(t))
+            print('Parameter snapshot:', planet)
+            break
         if method =='dynamic':
             planet.update(get.Tdep_thermals(thermals,Tp))
-        
+        planet.update(planet['constants'])
         viscT=get.viscosity(planet,Tp)
         Ra=get.rayleigh(planet,Tp,Ts,viscT)
         production=produce_heat(planet,t)
         loss=flux_heat(planet,Tp,Ra)
         dTp=(dt*seconds*(production-loss))/(planet['Cp']*(planet['Mp']-planet['Mc']))
-        line = {'ID': planet['ID'], 'time': t, 'temp': Tp, 'Ra': Ra, 'H': production, 'Q': loss, 'Urey': production/loss, 'viscT': viscT, 'visc0': np.log10(planet['visc0']), 'Ev': planet['Ev']/1000.0, 'log10visc': np.log10(viscT), 'beta': planet['beta']}
+        line = {'ID': planet['ID'], 'time': t, 'temp': Tp, 'Ra': np.log10(Ra), 'H': production/(1.0e12), 'Q': loss/(1.0e12), 'Urey': production/loss, 'viscT': viscT, 'visc0': np.log10(planet['visc0']), 'Ev': planet['Ev']/1000.0, 'log10visc': np.log10(viscT), 'beta': planet['beta']}
         Hts=Hts.append(line, ignore_index=True)
         Tp=Tp+dTp
         t=t+dt

@@ -38,13 +38,13 @@ DEFAULT = {
     'scaletemp': 1625.0,
     'beta': 0.336,
     'Ts': 300.0,
-    'decay': 1.42e-17 * seconds,
+    'decay': 0.34, #1.42e-17 * seconds,
     'c1': 0.5,
 }
 
-DEFAULT['Qp'] = 4.317e-14 * (DEFAULT['Mp']-DEFAULT['Mc'])*DEFAULT['Cp'] 
-DEFAULT['Sa'] = 4*pi*(Re)**2,
-DEFAULT['Vm'] = (4./3. * pi * ((DEFAULT['Rp']**3-(DEFAULT['Rc'])**3)))
+DEFAULT['Qp'] = 36.0e12 * 0.22 * e ** (tmax * DEFAULT['decay']) #4.317e-14 * (DEFAULT['Mp']-DEFAULT['Mc'])
+DEFAULT['Sa'] = 4*pi*(DEFAULT['Rp'])**2,
+#DEFAULT['Vm'] = (4./3. * pi * ((DEFAULT['Rp']**3-(DEFAULT['Rc'])**3)))
 DEFAULT['Sa'] = 4 * pi * (DEFAULT['Rp'] ** 2)
 
 # -----------BEGIN BENCHMARK PARAMETERS-----------
