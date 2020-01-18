@@ -38,7 +38,7 @@ Qpl=1.0             # Planet's starting radiogenic abundance, per kg mantle
 Pref=6.0            # reference pressure for thermal calculations, in GPa. If Pref is less than 4, Pref is set to half the CMB pressure.
 tmax=4.55           # ending time, in Ga - how long to cool the planet         Earth = 4.55
 my_composition = {'O': 1.0}
-
+keepconstant = {'beta': 0.33}
 '''
 my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':0.00, \
                   'O':0.249338793, 'Wad':0.072264906, 'Ring':0.028707673, 'Opx':14.88882685, \
@@ -51,7 +51,7 @@ my_composition = {'C2/c':5.605938492, 'Wus':0.196424301, 'Pv':58.03824705, 'an':
 ########################################################################
 planet={'ID': ID, 'Mpl':Mpl, 'Rpl':Rpl, 'Qpl':Qpl, 'Tp0':Tp0, 'Pref':Pref, 
      'outcols': ['ID', 'time', 'temp', 'Ra', 'H', 'Q', 'Urey', 'viscT', 
-     'visc0', 'Ev', 'log10visc', 'beta'], 'method': method}
+     'visc0', 'Ev', 'log10visc', 'beta'], 'method': method, 'constants': keepconstant}
 if Pref<4.001:
     planet['Pref'] = 0.5*planet['Pcmb']
 # Composition is in weight percent. All solid solutions are represented by their Mg endmembers.
@@ -71,7 +71,7 @@ if method=='dynamic':
 # Evolve your planet over time.
 Evolution = evolve.ThermEv(planet, thermals, method, planet['Tp0'], tmax)
 Evolution.to_csv(outfolder+planet['ID']+outfile)
-p = plot.evolution_colorcoded(Evolution, 'viscT', 'continuous')
+p = plot.evolution_colorcoded(Evolution, 'Ra', 'continuous')
 pio.write_html(p, outfolder+planet['ID']+'.html')
 print('Done! See '+outfolder+planet['ID']+'.html for plot.')
 
