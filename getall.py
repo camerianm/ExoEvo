@@ -344,7 +344,7 @@ def thermals_at_P_ave(composition,P):
             alpha_arr = np.empty_like(T_P)
             j = 0
             for Tp in T_P:
-                alpha_arr[j], cp_arr[j] = alphadefault, Cpdefault
+                alpha_arr[j], cp_arr[j] = DEFAULT['alpha'], DEFAULT['Cp']
                 j = j + 1
 
             thermals[:,1] = thermals[:,1] + composition[i] * alpha_arr
